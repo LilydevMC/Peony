@@ -1,0 +1,17 @@
+name = "Test Pack"
+author = "jadelily18"
+version = "0.1.0"
+pack-format = "packwiz:1.1.0"
+
+[index]
+file = "index.toml"
+hash-format = "sha256"
+hash = "9bb06cbe5ca401eebdd5a74b10fee327872f0844e97022bfd144abfbd78bd2e6"
+
+[versions]
+minecraft = "1.20.2"
+quilt = "0.21.0"
+
+[options]
+acceptable-game-versions = ["1.20.1"]
+
