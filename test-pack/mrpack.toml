@@ -1,0 +1,2 @@
+config_format_version = 1
+version_name_format = "%project_name% v%project_version% for Minecraft %mc_version%"

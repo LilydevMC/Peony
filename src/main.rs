@@ -7,6 +7,7 @@ use clap::{Parser, Subcommand, command};
 use crate::{
     models::pack::PackFile
 };
+use crate::models::meta::Config;
 
 mod models;
 
@@ -37,6 +38,11 @@ enum Commands {
 }
 
 fn main() -> anyhow::Result<()> {
+    match dotenvy::dotenv() {
+        Ok(_) => (),
+        Err(_) => ()
+    };
+
     let args = CliArgs::parse();
 
     match which::which("packwiz") {
@@ -49,6 +55,27 @@ fn main() -> anyhow::Result<()> {
             if !modrinth && !github {
                 return Err(anyhow!("No run configurations selected"));
             }
+
+            if !Path::new("mrpack.toml").exists() {
+                return Err(anyhow!(
+                            "Failed to find `mrpack.toml` file."
+                        ))
+            }
+
+            let config_file = match fs::read_to_string("mrpack.toml") {
+                Ok(content_string) => {
+                    let parsed_config: Config = match toml::from_str(&*content_string) {
+                        Ok(config) => config,
+                        Err(err) => return Err(anyhow!(
+                            "Failed to parse config file: {}", err
+                        ))
+                    };
+                },
+                Err(err) => return Err(anyhow!(
+                    "Failed to read config file: {}", err
+                ))
+            };
+
 
             let pack_file = match version {
                 Some(_) => {
@@ -67,7 +94,7 @@ fn main() -> anyhow::Result<()> {
             };
 
             let new_uuid = uuid::Uuid::new_v4();
-            let new_tmp_dir_name = format!("mrpack-dist_{}", new_uuid);
+            let new_tmp_dir_name = format!("{}_{}", env!("CARGO_PKG_NAME"), new_uuid);
             let new_tmp_dir = Path::new(env::temp_dir().as_path())
                 .join(new_tmp_dir_name);
 

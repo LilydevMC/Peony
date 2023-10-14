@@ -3,16 +3,17 @@ name = "mrpack-distributor"
 version = "0.1.0"
 authors = ["Jade Nash <jade@lilydev.com>"]
 description = "Builds from a packwiz project and distributes it to Modrinth and/or GitHub Releases."
-keywords = ["minecraft", "utility", "modrinth"]
+keywords = ["minecraft", "utility", "modrinth", "modpack"]
 readme = "README.md"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/LilydevMC/mrpack-distributor"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 clap = { version = "4.4.6", features = ["derive"] }
+
+dotenvy = "0.15.7"
 
 toml = "0.8.2"
 serde = { version = "1.0.189", features = ["derive"] }
@@ -20,8 +21,10 @@ serde_json = "1.0.107"
 
 which = "4.4.2"
 uuid = { version = "1.4.1", features = ["v4", "fast-rng"] }
-fs_extra = "1.3.0"
 
-hyper = "1.0.0-rc.4"
+fs_extra = "1.3.0"
+glob = "0.3.1"
+
+reqwest = "0.11.22"
 
 anyhow = "1.0.75"
