@@ -1,5 +1,7 @@
 use serde::{Serialize, Deserialize};
 
+// Based on the `Create Version` schema here:
+// https://docs.modrinth.com/api-spec#tag/versions/operation/createVersion
 #[derive(Debug, Serialize, Deserialize)]
 pub struct VersionRequest {
     pub name: String,
