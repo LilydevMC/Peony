@@ -230,12 +230,13 @@ async fn main() -> Result<(), anyhow::Error> {
             //     Err(_) => None
             // };
 
-            let latest_release = None;
+            // let compare_first = match latest_release {
+            //     Some(release) => release.tag_name,
+            //     None => first_commit
+            // };
 
-            let compare_first = match latest_release {
-                Some(release) => release.tag_name,
-                None => first_commit
-            };
+            let compare_first = first_commit;
+
 
             let full_changelog = format!(
                 "https://github.com/{}/{}/compare/{}..HEAD",
