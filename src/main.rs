@@ -184,7 +184,32 @@ async fn main() -> Result<(), anyhow::Error> {
                 None => return Err(anyhow!("Failed to get mrpack file name"))
             };
 
-            // GitHub Release
+            let loader_opt = if pack_file.versions.quilt.is_some() {
+                Some("Quilt")
+            } else if pack_file.versions.fabric.is_some() {
+                Some("Fabric")
+            } else if pack_file.versions.forge.is_some() {
+                Some("Forge")
+            } else if pack_file.versions.liteloader.is_some() {
+                Some("LiteLoader")
+            } else {
+                None
+            };
+
+            let loader = match loader_opt {
+                Some(loader) => loader,
+                None => return Err(anyhow!("Failed to parse loader name into string"))
+            };
+
+            let version_name = config_file.version_name_format
+                .replace("%project_name%", &pack_file.name)
+                .replace("%project_version%", &pack_file.version)
+                .replace("%mc_version%", &pack_file.versions.minecraft)
+                .replace("%loader%", loader);
+
+            // Changelog
+
+            println!("Generating changelog...");
 
             let octocrab_instance = octocrab::instance();
 
@@ -225,34 +250,21 @@ async fn main() -> Result<(), anyhow::Error> {
 
             let changelog_markdown = format!("[Full Changelog]({})", full_changelog);
 
+            println!("Successfully generated changelog!");
+
+            // GitHub Release
+
+            println!("Creating GitHub release...");
+
+            // TODO: Create GitHub release
+
+            println!("Successfully created GitHub release!");
+
             // Modrinth Release
 
             let modrinth_config = config_file.modrinth;
 
             println!("Uploading to Modrinth...");
-
-            let loader_opt = if pack_file.versions.quilt.is_some() {
-                Some("Quilt")
-            } else if pack_file.versions.fabric.is_some() {
-                Some("Fabric")
-            } else if pack_file.versions.forge.is_some() {
-                Some("Forge")
-            } else if pack_file.versions.liteloader.is_some() {
-                Some("LiteLoader")
-            } else {
-                None
-            };
-
-            let loader = match loader_opt {
-                Some(loader) => loader,
-                None => return Err(anyhow!("Failed to parse loader name into string"))
-            };
-
-            let version_name = config_file.version_name_format
-                .replace("%project_name%", &pack_file.name)
-                .replace("%project_version%", &pack_file.version)
-                .replace("%mc_version%", &pack_file.versions.minecraft)
-                .replace("%loader%", loader);
 
             let modrinth_req = VersionRequest {
                 name: version_name,
