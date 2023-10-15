@@ -30,11 +30,7 @@ enum Commands {
     #[command(about = "Runs configurations.")]
     Run {
         #[clap(long, short, help = "Custom version number")]
-        version: Option<String>,
-        #[clap(long, short, help = "Runs Modrinth configuration")]
-        modrinth: bool,
-        #[clap(long, short, help = "Runs GitHub configuration")]
-        github: bool,
+        version: Option<String>
     }
 }
 
@@ -52,11 +48,7 @@ fn main() -> anyhow::Result<()> {
     }
 
     match args.commands {
-        Commands::Run { version, modrinth, github } => {
-            if !modrinth && !github {
-                return Err(anyhow!("No run configurations selected"));
-            }
-
+        Commands::Run { version } => {
             if !Path::new("mrpack.toml").exists() {
                 return Err(anyhow!("Failed to find `mrpack.toml` file."))
             }
@@ -190,88 +182,92 @@ fn main() -> anyhow::Result<()> {
                 None => return Err(anyhow!("Failed to get file name"))
             };
 
+            // GitHub Release
 
-            if modrinth {
-                let modrinth_config = match config_file.modrinth {
-                    Some(mr) => mr,
-                    None => return Err(anyhow!("No Modrinth configuration supplied!"))
-                };
+            // TODO: GitHub release
 
-                println!("Uploading to Modrinth...");
 
-                let loader_opt = if pack_file.versions.quilt.is_some() {
-                    Some("Quilt")
-                } else if pack_file.versions.fabric.is_some() {
-                    Some("Fabric")
-                } else if pack_file.versions.forge.is_some() {
-                    Some("Forge")
-                } else if pack_file.versions.liteloader.is_some() {
-                    Some("LiteLoader")
-                } else {
-                    None
-                };
+            // Modrinth Release
 
-                let loader = match loader_opt {
-                    Some(loader) => loader,
-                    None => return Err(anyhow!("Failed to parse loader name into string"))
-                };
 
-                let version_name = config_file.version_name_format
-                    .replace("%project_name%", &pack_file.name)
-                    .replace("%project_version%", &pack_file.version)
-                    .replace("%mc_version%", &pack_file.versions.minecraft)
-                    .replace("%loader%", loader);
+            let modrinth_config = match config_file.modrinth {
+                Some(mr) => mr,
+                None => return Err(anyhow!("No Modrinth configuration supplied!"))
+            };
 
-                let modrinth_req = VersionRequest {
-                    name: version_name,
-                    version_number: pack_file.version,
-                    changelog: None,
-                    dependencies: vec![],
-                    game_versions: vec![pack_file.versions.minecraft],
-                    version_type: VersionType::RELEASE,
-                    loaders: vec![loader.to_string().to_ascii_lowercase()],
-                    featured: false,
-                    requested_status: VersionStatus::LISTED,
-                    project_id: modrinth_config.project_id,
-                    file_parts: vec!["file".to_string()],
-                    primary_file: file_name.to_string(),
-                };
+            println!("Uploading to Modrinth...");
 
-                let modrinth_token = match env::var("MODRINTH_TOKEN") {
-                    Ok(token) => token,
-                    Err(err) => return Err(anyhow!(
-                        "Failed to get `MODRINTH_TOKEN`: {}", err
-                    ))
-                };
+            let loader_opt = if pack_file.versions.quilt.is_some() {
+                Some("Quilt")
+            } else if pack_file.versions.fabric.is_some() {
+                Some("Fabric")
+            } else if pack_file.versions.forge.is_some() {
+                Some("Forge")
+            } else if pack_file.versions.liteloader.is_some() {
+                Some("LiteLoader")
+            } else {
+                None
+            };
 
-                let form = match reqwest::blocking::multipart::Form::new()
-                    .text("data", serde_json::to_string(&modrinth_req).unwrap())
-                    .file("file", mrpack_path) {
-                    Ok(res) => res,
-                    Err(err) => return Err(anyhow!("Error building form: {}", err))
-                };
+            let loader = match loader_opt {
+                Some(loader) => loader,
+                None => return Err(anyhow!("Failed to parse loader name into string"))
+            };
 
-                let req = match reqwest::blocking::Client::new()
-                    .post("https://api.modrinth.com/v2/version")
-                    .header("Authorization", modrinth_token)
-                    .multipart(form)
-                    .send() {
-                    Ok(res) => res,
-                    Err(err) => return Err(anyhow!("Error uploading version: {}", err))
-                };
+            let version_name = config_file.version_name_format
+                .replace("%project_name%", &pack_file.name)
+                .replace("%project_version%", &pack_file.version)
+                .replace("%mc_version%", &pack_file.versions.minecraft)
+                .replace("%loader%", loader);
 
-                if req.status().is_success() {
-                    println!("Successfully uploaded version to Modrinth!");
-                } else {
-                    return Err(anyhow!(
-                        "Failed to upload version to Modrinth: {}",
-                        req.text().unwrap()
-                    ))
-                }
+            let modrinth_req = VersionRequest {
+                name: version_name,
+                version_number: pack_file.version,
+                changelog: None,
+                dependencies: vec![],
+                game_versions: vec![pack_file.versions.minecraft],
+                version_type: VersionType::RELEASE,
+                loaders: vec![loader.to_string().to_ascii_lowercase()],
+                featured: false,
+                requested_status: VersionStatus::LISTED,
+                project_id: modrinth_config.project_id,
+                file_parts: vec!["file".to_string()],
+                primary_file: file_name.to_string(),
+            };
+
+            let modrinth_token = match env::var("MODRINTH_TOKEN") {
+                Ok(token) => token,
+                Err(err) => return Err(anyhow!(
+                    "Failed to get `MODRINTH_TOKEN`: {}", err
+                ))
+            };
+
+            let form = match reqwest::blocking::multipart::Form::new()
+                .text("data", serde_json::to_string(&modrinth_req).unwrap())
+                .file("file", mrpack_path) {
+                Ok(res) => res,
+                Err(err) => return Err(anyhow!("Error building form: {}", err))
+            };
+
+            let req = match reqwest::blocking::Client::new()
+                .post("https://api.modrinth.com/v2/version")
+                .header("Authorization", modrinth_token)
+                .multipart(form)
+                .send() {
+                Ok(res) => res,
+                Err(err) => return Err(anyhow!("Error uploading version: {}", err))
+            };
+
+            if req.status().is_success() {
+                println!("Successfully uploaded version to Modrinth!");
+            } else {
+                return Err(anyhow!(
+                    "Failed to upload version to Modrinth: {}",
+                    req.text().unwrap()
+                ))
             }
-            if github {
-                println!("GitHub config selected")
-            }
+
+            // Clean Up
 
             println!("Cleaning up...");
 
