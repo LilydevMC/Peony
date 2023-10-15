@@ -34,7 +34,8 @@ enum Commands {
     }
 }
 
-fn main() -> anyhow::Result<()> {
+#[tokio::main]
+async fn main() -> Result<(), anyhow::Error> {
     match dotenvy::dotenv() {
         Ok(_) => (),
         Err(_) => ()
@@ -163,7 +164,8 @@ fn main() -> anyhow::Result<()> {
 
             let mut mrpack_path_res = None;
             for entry in glob_pattern {
-                mrpack_path_res = Some(entry)
+                mrpack_path_res = Some(entry);
+                break;
             };
             let mrpack_path = match mrpack_path_res {
                 Some(path) => match path {
@@ -176,24 +178,56 @@ fn main() -> anyhow::Result<()> {
             };
             let file_name = match mrpack_path.file_name() {
                 Some(os_name) => match os_name.to_str() {
-                    Some(name) => name,
+                    Some(name) => name.to_string(),
                     None => return Err(anyhow!("Failed to parse file name from OsString to &str"))
                 },
-                None => return Err(anyhow!("Failed to get file name"))
+                None => return Err(anyhow!("Failed to get mrpack file name"))
             };
 
             // GitHub Release
 
-            // TODO: GitHub release
+            let octocrab_instance = octocrab::instance();
 
+            let github_repo = octocrab_instance.repos(
+                    &config_file.github.repo_owner,
+                    &config_file.github.repo_name
+                );
+
+            let first_commit = match Command::new("git")
+                .args(["rev-list", "--max-parents=0", "HEAD"]).output() {
+                Ok(output) => match String::from_utf8(output.stdout) {
+                    Ok(output_string) => output_string.replace("\n", ""),
+                    Err(err) => return Err(anyhow!(
+                    "Failed to parse git output: {}", err
+                ))
+                },
+                Err(err) => return Err(anyhow!(
+                    "Failed to get first commit: {}", err
+                ))
+            };
+
+            let latest_release = match github_repo.releases().get_latest().await {
+                Ok(release) => Some(release),
+                Err(_) => None
+            };
+
+            let compare_first = match latest_release {
+                Some(release) => release.tag_name,
+                None => first_commit
+            };
+
+            let full_changelog = format!(
+                "https://github.com/{}/{}/compare/{}..HEAD",
+                config_file.github.repo_owner,
+                config_file.github.repo_name,
+                compare_first
+            );
+
+            let changelog_markdown = format!("[Full Changelog]({})", full_changelog);
 
             // Modrinth Release
 
-
-            let modrinth_config = match config_file.modrinth {
-                Some(mr) => mr,
-                None => return Err(anyhow!("No Modrinth configuration supplied!"))
-            };
+            let modrinth_config = config_file.modrinth;
 
             println!("Uploading to Modrinth...");
 
@@ -223,7 +257,7 @@ fn main() -> anyhow::Result<()> {
             let modrinth_req = VersionRequest {
                 name: version_name,
                 version_number: pack_file.version,
-                changelog: None,
+                changelog: Some(changelog_markdown),
                 dependencies: vec![],
                 game_versions: vec![pack_file.versions.minecraft],
                 version_type: VersionType::RELEASE,
@@ -242,20 +276,40 @@ fn main() -> anyhow::Result<()> {
                 ))
             };
 
-            let form = match reqwest::blocking::multipart::Form::new()
-                .text("data", serde_json::to_string(&modrinth_req).unwrap())
-                .file("file", mrpack_path) {
-                Ok(res) => res,
-                Err(err) => return Err(anyhow!("Error building form: {}", err))
+            let mrpack_file = match fs::read(&*mrpack_path) {
+                Ok(file) => file,
+                Err(err) => return Err(anyhow!(
+                    "Failed to read .mrpack file: {}", err
+                ))
+            };
+            let file_part = match reqwest::multipart::Part::bytes(mrpack_file)
+                .file_name(file_name)
+                .mime_str("application/zip") {
+                Ok(part) => part,
+                Err(err) => return Err(anyhow!(
+                    "Failed to get part from .mrpack file: {}", err
+                ))
             };
 
-            let req = match reqwest::blocking::Client::new()
-                .post("https://api.modrinth.com/v2/version")
+            let form = reqwest::multipart::Form::new()
+                .text("data", serde_json::to_string(&modrinth_req).unwrap())
+                .part("file", file_part);
+
+            let modrinth_req_url = match modrinth_config.staging {
+                Some(is_staging) => match is_staging {
+                    true => "https://staging-api.modrinth.com/v2/version",
+                    false => "https://api.modrinth.com/v2/version"
+                },
+                None => "https://api.modrinth.com/v2/version"
+            };
+
+            let req = match reqwest::Client::new()
+                .post(modrinth_req_url)
                 .header("Authorization", modrinth_token)
                 .multipart(form)
-                .send() {
-                Ok(res) => res,
-                Err(err) => return Err(anyhow!("Error uploading version: {}", err))
+                .send().await {
+                    Ok(res) => res,
+                    Err(err) => return Err(anyhow!("Error uploading version: {}", err))
             };
 
             if req.status().is_success() {
@@ -263,7 +317,7 @@ fn main() -> anyhow::Result<()> {
             } else {
                 return Err(anyhow!(
                     "Failed to upload version to Modrinth: {}",
-                    req.text().unwrap()
+                    req.text().await.unwrap()
                 ))
             }
 

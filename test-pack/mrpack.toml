@@ -2,4 +2,9 @@ config_format_version = 1
 version_name_format = "%project_name% v%project_version% for Minecraft %mc_version% (%loader%)"
 
 [modrinth]
-project_id = "F2SuAZzV"
+project_id = "2jZzXrpV"
+staging = true
+
+[github]
+repo_owner = "LilydevMC"
+repo_name = "mrpack-dist-test"
