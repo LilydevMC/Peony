@@ -7,6 +7,7 @@ use glob::glob;
 use crate::{
     models::pack::PackFile
 };
+use crate::models::github::ReleaseResponse;
 use crate::models::meta::Config;
 use crate::models::modrinth::{VersionRequest, VersionStatus, VersionType};
 
@@ -224,18 +225,30 @@ async fn main() -> Result<(), anyhow::Error> {
                 ))
             };
 
+            let latest_release = match reqwest::Client::new()
+                .get(
+                    format!(
+                        "https://api.github.com/repos/{}/{}/releases/latest",
+                        config_file.github.repo_owner,
+                        config_file.github.repo_name
+                    )
+                )
+                .header("User-Agent", env!("CARGO_PKG_NAME"))
+                .send().await {
+                    Ok(res) => {
+                        match res.json::<ReleaseResponse>().await {
+                            Ok(json) => Some(json),
+                            Err(_) => None
+                        }
+                    },
+                    Err(_) => None
+            };
 
-            // let latest_release = match github_repo.releases().get_latest().await {
-            //     Ok(release) => Some(release),
-            //     Err(_) => None
-            // };
 
-            // let compare_first = match latest_release {
-            //     Some(release) => release.tag_name,
-            //     None => first_commit
-            // };
-
-            let compare_first = first_commit;
+            let compare_first = match latest_release {
+                Some(release) => release.tag_name,
+                None => first_commit
+            };
 
 
             let full_changelog = format!(

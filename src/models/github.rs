@@ -14,7 +14,7 @@ pub struct CreateReleaseRequest {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct CreateReleaseResponse {
+pub struct ReleaseResponse {
     pub url: String,
     pub html_url: String,
     pub assets_url: String,
