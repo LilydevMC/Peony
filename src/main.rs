@@ -211,13 +211,6 @@ async fn main() -> Result<(), anyhow::Error> {
 
             println!("Generating changelog...");
 
-            let octocrab_instance = octocrab::instance();
-
-            let github_repo = octocrab_instance.repos(
-                    &config_file.github.repo_owner,
-                    &config_file.github.repo_name
-                );
-
             let first_commit = match Command::new("git")
                 .args(["rev-list", "--max-parents=0", "HEAD"]).output() {
                 Ok(output) => match String::from_utf8(output.stdout) {
@@ -231,10 +224,13 @@ async fn main() -> Result<(), anyhow::Error> {
                 ))
             };
 
-            let latest_release = match github_repo.releases().get_latest().await {
-                Ok(release) => Some(release),
-                Err(_) => None
-            };
+
+            // let latest_release = match github_repo.releases().get_latest().await {
+            //     Ok(release) => Some(release),
+            //     Err(_) => None
+            // };
+
+            let latest_release = None;
 
             let compare_first = match latest_release {
                 Some(release) => release.tag_name,
