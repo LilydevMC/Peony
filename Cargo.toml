@@ -25,6 +25,6 @@ uuid = { version = "1.4.1", features = ["v4", "fast-rng"] }
 fs_extra = "1.3.0"
 glob = "0.3.1"
 
-reqwest = "0.11.22"
+reqwest = { version = "0.11.22", features = ["serde_json", "blocking", "multipart"] }
 
 anyhow = "1.0.75"

@@ -26,24 +26,35 @@ pub struct VersionDependency {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub enum VersionType {
-    RELEASE(String),
-    BETA(String),
-    ALPHA(String)
+    #[serde(rename = "release")]
+    RELEASE,
+    #[serde(rename = "beta")]
+    BETA,
+    #[serde(rename = "alpha")]
+    ALPHA
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub enum VersionStatus {
-    LISTED(String),
-    ARCHIVED(String),
-    DRAFT(String),
-    UNLISTED(String)
+    #[serde(rename = "listed")]
+    LISTED,
+    #[serde(rename = "archived")]
+    ARCHIVED,
+    #[serde(rename = "draft")]
+    DRAFT,
+    #[serde(rename = "unlisted")]
+    UNLISTED
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub enum DependencyType {
-    REQUIRED(String),
-    OPTIONAL(String),
-    INCOMPATIBLE(String),
-    EMBEDDED(String)
+    #[serde(rename = "required")]
+    REQUIRED,
+    #[serde(rename = "optional")]
+    OPTIONAL,
+    #[serde(rename = "incompatible")]
+    INCOMPATIBLE,
+    #[serde(rename = "embedded")]
+    EMBEDDED
 }
 

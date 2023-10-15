@@ -2,12 +2,12 @@ use serde::{Serialize, Deserialize};
 
 // Based on packwiz's pack.toml format here:
 // https://packwiz.infra.link/reference/pack-format/pack-toml/
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct PackFile {
     pub name: String,
     pub author: Option<String>,
     pub description: Option<String>,
-    pub version: Option<String>,
+    pub version: String,
     #[serde(rename = "pack-format")]
     pub pack_format: String,
     pub index: PackFileIndex,
@@ -15,7 +15,7 @@ pub struct PackFile {
     pub options: Option<PackFileOptions>
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct PackFileIndex {
     pub file: String,
     #[serde(rename = "hash-format")]
@@ -23,7 +23,7 @@ pub struct PackFileIndex {
     pub hash: String
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct PackFileVersions {
     pub minecraft: String,
     pub quilt: Option<String>,
@@ -32,7 +32,7 @@ pub struct PackFileVersions {
     pub liteloader: Option<String>
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct PackFileOptions {
     #[serde(rename = "acceptable-game-versions")]
     pub acceptable_game_versions: Option<Vec<String>>,
