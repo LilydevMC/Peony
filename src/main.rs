@@ -272,6 +272,17 @@ fn main() -> anyhow::Result<()> {
             if github {
                 println!("GitHub config selected")
             }
+
+            println!("Cleaning up...");
+
+            match fs_extra::dir::remove(new_tmp_dir) {
+                Ok(_) => {
+                    println!("Removed temporary directory!")
+                },
+                Err(err) => return Err(anyhow!(
+                    "Failed to remove temporary directory: {}", err
+                ))
+            }
         }
     }
     Ok(())
