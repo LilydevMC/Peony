@@ -2,8 +2,11 @@ use std::{env, fs};
 use std::path::Path;
 use std::process::Command;
 use anyhow::anyhow;
+use chrono::Utc;
 use clap::{Parser, Subcommand, command};
 use glob::glob;
+use serenity::model::channel::Embed;
+use serenity::model::webhook::Webhook;
 use crate::{
     models::pack::PackFile
 };
@@ -30,6 +33,8 @@ struct CliArgs {
 enum Commands {
     #[command(about = "Runs configurations.")]
     Run {
+        #[clap(long, short, help = "Whether or not to send Discord webhook")]
+        discord: bool,
         #[clap(long, short, help = "Custom version number")]
         version: Option<String>
     }
@@ -50,7 +55,7 @@ async fn main() -> Result<(), anyhow::Error> {
     }
 
     match args.commands {
-        Commands::Run { version } => {
+        Commands::Run { discord, version } => {
             if !Path::new("mrpack.toml").exists() {
                 return Err(anyhow!("Failed to find `mrpack.toml` file."))
             }
@@ -273,8 +278,6 @@ async fn main() -> Result<(), anyhow::Error> {
 
             println!("Creating GitHub release...");
 
-            // TODO: Create GitHub release
-
             let github_token = match env::var("GITHUB_TOKEN") {
                 Ok(token) => token,
                 Err(err) => return Err(anyhow!(
@@ -315,7 +318,7 @@ async fn main() -> Result<(), anyhow::Error> {
 
 
 
-            match new_release_response {
+            match new_release_response.as_ref() {
                 Ok(release_res) => {
                     println!("Successfully created GitHub release!");
                     println!("Uploading release asset to GitHub release...");
@@ -345,8 +348,6 @@ async fn main() -> Result<(), anyhow::Error> {
             }
 
 
-
-
             // Modrinth Release
 
             let modrinth_config = config_file.modrinth;
@@ -354,9 +355,9 @@ async fn main() -> Result<(), anyhow::Error> {
             println!("Uploading to Modrinth...");
 
             let modrinth_req = VersionRequest {
-                name: version_name,
+                name: version_name.clone(),
                 version_number: pack_file.version,
-                changelog: Some(changelog_markdown),
+                changelog: Some(changelog_markdown.to_owned()),
                 dependencies: vec![],
                 game_versions: vec![pack_file.versions.minecraft],
                 version_type: VersionType::RELEASE,
@@ -413,6 +414,58 @@ async fn main() -> Result<(), anyhow::Error> {
                     req.text().await.unwrap()
                 ))
             }
+
+            if discord {
+
+                let discord_config = match config_file.discord {
+                    Some(config) => config,
+                    None => return Err(anyhow!(
+                        "Failed to get Discord config"
+                    ))
+                };
+
+                let description = format!("\
+                **New release!** {}\n\n\
+                {} [GitHub](https://github.com/{}/{}/releases/latest)\n\
+                {} [Modrinth](https://modrinth.com/modpacks/{})\n\n\
+                {}
+                ",
+                    discord_config.discord_ping_role,
+                    discord_config.github_emoji_id,
+                    config_file.github.repo_owner,
+                    config_file.github.repo_name,
+                    discord_config.modrinth_emoji_id,
+                    modrinth_req.project_id,
+                    changelog_markdown
+                );
+
+                let embed = Embed::fake(|e| {
+                    e.title(format!("{} {}", discord_config.title_emoji, version_name))
+                        .description(description)
+                        .image(discord_config.embed_image_url)
+                        .footer(|f| {
+                            f.text(format!("{} UTC", Utc::now().format("%b, %d %Y")))
+                        })
+                });
+
+                let http = serenity::http::Http::new("token");
+                let url = match env::var("WEBHOOK_URL") {
+                    Ok(url) => url,
+                    Err(err) => return Err(anyhow!(
+                        "Failed to get webhook url: {}", err
+                    ))
+                };
+
+                let webhook = Webhook::from_url(&http, &*url).await?;
+
+                webhook.execute(&http, true, |w| {
+                    w
+                        .embeds(vec![embed])
+                }).await?;
+
+            }
+
+
 
             // Clean Up
 
