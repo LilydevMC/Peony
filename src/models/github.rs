@@ -3,14 +3,8 @@ use serde::{Serialize, Deserialize};
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CreateReleaseRequest {
     pub tag_name: String,
-    pub target_commitish: Option<String>,
     pub name: Option<String>,
-    pub body: Option<String>,
-    pub draft: Option<bool>,
-    pub prerelease: Option<bool>,
-    pub discussion_category_name: Option<String>,
-    pub generate_release_notes: Option<bool>,
-    pub make_latest: Option<String>
+    pub body: Option<String>
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -33,11 +27,11 @@ pub struct ReleaseResponse {
     pub published_at: Option<String>,
     pub author: GithubAuthor,
     pub assets: Vec<GithubAsset>,
-    pub body_html: String,
-    pub body_text: String,
-    pub mentions_count: i32,
-    pub discussion_url: String,
-    pub reactions: GithubReactions
+    pub body_html: Option<String>,
+    pub body_text: Option<String>,
+    pub mentions_count: Option<i32>,
+    pub discussion_url: Option<String>,
+    pub reactions: Option<GithubReactions>
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -63,7 +57,7 @@ pub struct GithubAuthor {
     #[serde(rename = "type")]
     pub type_string: String,
     pub site_admin: bool,
-    pub starred_at: String
+    pub starred_at: Option<String>
 }
 
 #[derive(Debug, Serialize, Deserialize)]
