@@ -4,12 +4,9 @@ permissions:
   contents: write
 
 on:
-  workflow_dispatch:
-    inputs:
-      version:
-        type: string
-        description: Binary version
-        required: false
+  push:
+    tags:
+      - *
 
 jobs:
   create-release:
