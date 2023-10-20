@@ -31,7 +31,7 @@ pub struct ProjectResponse {
     pub moderator_message: Option<String>, // replaced with threads for newer projects
     pub published: String,
     pub updated: String,
-    pub approved: String,
+    pub approved: Option<String>,
     pub queued: Option<String>,
     pub followers: i32,
     pub license: LicenseObject,
