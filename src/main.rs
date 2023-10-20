@@ -13,8 +13,10 @@ use crate::{
 use crate::models::github::{CreateReleaseRequest, ReleaseResponse};
 use crate::models::meta::Config;
 use crate::models::modrinth::{ProjectResponse, VersionRequest, VersionStatus, VersionType};
+use crate::util::create_temp;
 
 mod models;
+mod util;
 
 
 #[derive(Debug, Parser)]
@@ -87,33 +89,10 @@ async fn main() -> Result<(), anyhow::Error> {
             };
             let mut pack_file = file_parsed;
 
-            let new_uuid = uuid::Uuid::new_v4();
-            let new_tmp_dir_name = format!("{}_{}", env!("CARGO_PKG_NAME"), new_uuid);
-            let new_tmp_dir = Path::new(env::temp_dir().as_path())
-                .join(new_tmp_dir_name);
-
-            let current_dir = match env::current_dir() {
-                Ok(dir) => dir,
-                Err(err) => return Err(anyhow!("Failed to get current directory: {}", err))
+            let tmp_info = match create_temp() {
+                Ok(info) => info,
+                Err(err) => return Err(err)
             };
-
-            match fs::create_dir(&new_tmp_dir) {
-                Ok(_) => (),
-                Err(err) => return Err(anyhow!(
-                    "Failed to create temporary directory: {}", err
-                ))
-            }
-
-            match fs_extra::dir::copy(
-                current_dir,
-                &new_tmp_dir,
-                &fs_extra::dir::CopyOptions::new().content_only(true)
-            ) {
-                Ok(_) => (),
-                Err(err) => return Err(anyhow!(
-                    "Failed to copy files to temporary directory: {}", err
-                ))
-            }
 
             match version {
                 Some(ver) => {
@@ -131,7 +110,7 @@ async fn main() -> Result<(), anyhow::Error> {
                     pack_file = new_file_contents;
 
                     match fs::write(
-                        Path::new(&new_tmp_dir).join("pack.toml"),
+                        Path::new(&tmp_info.dir_path).join("pack.toml"),
                         file_contents_string
                     ) {
                         Ok(_) => (),
@@ -146,7 +125,7 @@ async fn main() -> Result<(), anyhow::Error> {
             match Command::new("packwiz")
                 .arg("mr")
                 .arg("export")
-                .current_dir(&new_tmp_dir).output() {
+                .current_dir(&tmp_info.dir_path).output() {
                 Ok(_) => (),
                 Err(err) => return Err(anyhow!(
                     "Failed to export with packwiz: {}", err
@@ -155,7 +134,7 @@ async fn main() -> Result<(), anyhow::Error> {
 
 
             let glob_pattern = match glob(
-                match Path::new(&new_tmp_dir).join("*.mrpack").to_str() {
+                match Path::new(&tmp_info.dir_path).join("*.mrpack").to_str() {
                     Some(path) => path,
                     None => return Err(anyhow!(
                         "Failed to parse modpack glob to string."
@@ -494,19 +473,7 @@ async fn main() -> Result<(), anyhow::Error> {
             }
 
 
-
-            // Clean Up
-
-            println!("Cleaning up...");
-
-            match fs_extra::dir::remove(new_tmp_dir) {
-                Ok(_) => {
-                    println!("Removed temporary directory!")
-                },
-                Err(err) => return Err(anyhow!(
-                    "Failed to remove temporary directory: {}", err
-                ))
-            }
+            util::clean_up(&tmp_info.dir_path)?
         }
     }
     Ok(())
