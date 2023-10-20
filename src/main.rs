@@ -12,7 +12,7 @@ use crate::{
 };
 use crate::models::github::{CreateReleaseRequest, ReleaseResponse};
 use crate::models::meta::Config;
-use crate::models::modrinth::{VersionRequest, VersionStatus, VersionType};
+use crate::models::modrinth::{ProjectResponse, VersionRequest, VersionStatus, VersionType};
 
 mod models;
 
@@ -389,17 +389,25 @@ async fn main() -> Result<(), anyhow::Error> {
                 .text("data", serde_json::to_string(&modrinth_req).unwrap())
                 .part("file", file_part);
 
-            let modrinth_req_url = match modrinth_config.staging {
+            let knossos_url = match modrinth_config.staging {
                 Some(is_staging) => match is_staging {
-                    true => "https://staging-api.modrinth.com/v2/version",
-                    false => "https://api.modrinth.com/v2/version"
+                    true => "https://staging.modrinth.com",
+                    false => "https://modrinth.com"
                 },
-                None => "https://api.modrinth.com/v2/version"
+                None => "https://modrinth.com"
+            };
+
+            let labrinth_url = match modrinth_config.staging {
+                Some(is_staging) => match is_staging {
+                    true => "https://staging-api.modrinth.com/v2",
+                    false => "https://api.modrinth.com/v2"
+                },
+                None => "https://api.modrinth.com/v2"
             };
 
             let req = match reqwest::Client::new()
-                .post(modrinth_req_url)
-                .header("Authorization", modrinth_token)
+                .post(format!("{}/version", labrinth_url))
+                .header("Authorization", &modrinth_token)
                 .multipart(form)
                 .send().await {
                     Ok(res) => res,
@@ -416,7 +424,6 @@ async fn main() -> Result<(), anyhow::Error> {
             }
 
             if discord {
-
                 let discord_config = match config_file.discord {
                     Some(config) => config,
                     None => return Err(anyhow!(
@@ -424,10 +431,30 @@ async fn main() -> Result<(), anyhow::Error> {
                     ))
                 };
 
+                let modrinth_project = match reqwest::Client::new()
+                    .get(format!("{}/project/{}", labrinth_url, modrinth_req.project_id))
+                    .header("Authorization", modrinth_token)
+                    .send().await {
+                        Ok(res) => {
+                            match res.json::<ProjectResponse>().await {
+                                Ok(json) => json,
+                                Err(err) => return Err(anyhow!(
+                                    "Error parsing response from get project: {}\n\
+                                    Make sure this project is not a draft!",
+                                    err.to_string()
+                                ))
+                            }
+                        },
+                        Err(err) => return Err(anyhow!(
+                            "Error getting project from project id: {}",
+                            err
+                        ))
+                };
+
                 let description = format!("\
                 **New release!** {}\n\n\
                 {} [GitHub](https://github.com/{}/{}/releases/latest)\n\
-                {} [Modrinth](https://modrinth.com/modpacks/{})\n\n\
+                {} [Modrinth]({}/modpack/{})\n\n\
                 {}
                 ",
                     discord_config.discord_ping_role,
@@ -435,7 +462,8 @@ async fn main() -> Result<(), anyhow::Error> {
                     config_file.github.repo_owner,
                     config_file.github.repo_name,
                     discord_config.modrinth_emoji_id,
-                    modrinth_req.project_id,
+                    knossos_url,
+                    modrinth_project.slug,
                     changelog_markdown
                 );
 
@@ -444,7 +472,7 @@ async fn main() -> Result<(), anyhow::Error> {
                         .description(description)
                         .image(discord_config.embed_image_url)
                         .footer(|f| {
-                            f.text(format!("{} UTC", Utc::now().format("%b, %d %Y")))
+                            f.text(format!("{} UTC", Utc::now().format("%b, %d %Y %r")))
                         })
                 });
 
