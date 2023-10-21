@@ -1,6 +1,32 @@
 use serde::{Serialize, Deserialize};
 use crate::models::modrinth::{DonationObject, GalleryObject, LicenseObject};
 
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum ProjectType {
+    MOD,
+    PLUGIN,
+    DATAPACK,
+    SHADER,
+    RESOURCEPACK,
+    MODPACK
+}
+
+impl ProjectType {
+    pub fn formatted(&self) -> String {
+        match self {
+            Self::MOD => "Mod",
+            Self::PLUGIN => "Plugin",
+            Self::DATAPACK => "Data Pack",
+            Self::SHADER => "Shader",
+            Self::RESOURCEPACK => "Resource Pack",
+            Self::MODPACK => "Modpack"
+        }.to_string()
+    }
+}
+
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ProjectResponse {
     pub slug: String,
@@ -19,7 +45,7 @@ pub struct ProjectResponse {
     pub wiki_url: Option<String>,
     pub discord_url: Option<String>,
     pub donation_urls: Vec<DonationObject>,
-    pub project_type: String,
+    pub project_type: ProjectType,
     pub downloads: i32,
     pub icon_url: Option<String>,
     pub color: Option<i32>,

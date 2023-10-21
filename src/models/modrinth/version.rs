@@ -1,5 +1,8 @@
 use serde::{Serialize, Deserialize};
-use crate::models::modrinth::DependencyType;
+use crate::models::modrinth::{
+    DependencyType,
+    Loader
+};
 
 // Based on the `Create Version` schema here:
 // https://docs.modrinth.com/api-spec#tag/versions/operation/createVersion
@@ -11,7 +14,7 @@ pub struct VersionRequest {
     pub dependencies: Vec<VersionDependency>,
     pub game_versions: Vec<String>,
     pub version_type: VersionType,
-    pub loaders: Vec<String>,
+    pub loaders: Vec<Loader>,
     pub featured: bool,
     pub requested_status: VersionStatus,
     pub project_id: String,

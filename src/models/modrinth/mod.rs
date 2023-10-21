@@ -34,6 +34,34 @@ impl ModrinthUrl {
     }
 }
 
+#[derive(Debug, Serialize, Deserialize, Copy, Clone)]
+#[serde(rename_all = "lowercase")]
+pub enum Loader {
+    QUILT,
+    FABRIC,
+    NEOFORGE,
+    FORGE,
+    LITELOADER
+}
+
+impl Loader {
+    pub fn formatted(&self) -> String {
+        match self {
+            Self::QUILT => "Quilt",
+            Self::FABRIC => "Fabric",
+            Self::NEOFORGE => "NeoForge",
+            Self::FORGE => "Forge",
+            Self::LITELOADER => "LiteLoader"
+        }.to_string()
+    }
+}
+
+// impl ToString for Loader {
+//     fn to_string(&self) -> String {
+//
+//     }
+// }
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct DonationObject {
     pub id: String,

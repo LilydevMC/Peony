@@ -255,7 +255,11 @@ async fn main() -> Result<(), anyhow::Error> {
                         .description(description)
                         .image(discord_config.embed_image_url)
                         .footer(|f| {
-                            f.text(format!("{} | {} UTC", modrinth_project.project_type, release_time))
+                            f.text(format!(
+                                "{} | {} UTC",
+                                modrinth_project.project_type.formatted(),
+                                release_time
+                            ))
                         })
                 });
 

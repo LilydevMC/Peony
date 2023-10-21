@@ -32,7 +32,7 @@ pub async fn create_modrinth_release(
         dependencies: vec![],
         game_versions: vec![pack_file.versions.minecraft.clone()],
         version_type: VersionType::RELEASE,
-        loaders: vec![version_info.loader.clone().to_ascii_lowercase()],
+        loaders: vec![version_info.loader.clone()],
         featured: false,
         requested_status: VersionStatus::LISTED,
         project_id: modrinth_config.project_id,
