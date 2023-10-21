@@ -50,7 +50,7 @@ jobs:
         env:
           version_arg: 'package.version=\\\"${{ github.event.inputs.version }}\\\"'
       - name: Set version argument (Non-Windows)
-        if: matrix-platform.os != 'windows-latest'
+        if: matrix.platform.os != 'windows-latest'
         run: echo "Not Windows :)"
         env:
           version_arg: 'package.version=\"${{ github.event.inputs.version }}\"'
