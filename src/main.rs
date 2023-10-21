@@ -11,10 +11,13 @@ use crate::models::meta::Config;
 use crate::models::modrinth::{ProjectResponse, VersionRequest, VersionStatus, VersionType};
 use crate::pack::{get_output_file, get_pack_file, write_pack_file};
 use crate::util::create_temp;
+use crate::version::get_version_info;
 
 mod models;
+mod modrinth;
 mod pack;
 mod util;
+mod version;
 
 
 #[derive(Debug, Parser)]
@@ -123,35 +126,15 @@ async fn main() -> Result<(), anyhow::Error> {
                 Err(err) => return Err(err)
             };
 
-            let loader_opt = if pack_file.versions.quilt.is_some() {
-                Some("Quilt")
-            } else if pack_file.versions.fabric.is_some() {
-                Some("Fabric")
-            } else if pack_file.versions.forge.is_some() {
-                Some("Forge")
-            } else if pack_file.versions.liteloader.is_some() {
-                Some("LiteLoader")
-            } else {
-                None
+            let version_info = match get_version_info(
+                &config_file,
+                &pack_file,
+                &output_file_info
+            ) {
+                Ok(info) => info,
+                Err(err) => return Err(err)
             };
 
-            let loader = match loader_opt {
-                Some(loader) => loader,
-                None => return Err(anyhow!("Failed to parse loader name into string"))
-            };
-
-            let version_name = config_file.version_name_format
-                .replace("%project_name%", &pack_file.name)
-                .replace("%project_version%", &pack_file.version)
-                .replace("%mc_version%", &pack_file.versions.minecraft)
-                .replace("%loader%", loader);
-
-            let mrpack_file_contents = match fs::read(output_file_info.file_path) {
-                Ok(file) => file,
-                Err(err) => return Err(anyhow!(
-                    "Failed to read .mrpack file: {}", err
-                ))
-            };
 
             // Changelog
 
@@ -220,7 +203,7 @@ async fn main() -> Result<(), anyhow::Error> {
 
             let new_release_req_body = CreateReleaseRequest {
                 tag_name: pack_file.version.clone(),
-                name: Some(version_name.clone()),
+                name: Some(version_info.version_name.clone()),
                 body: Some(changelog_markdown.clone())
             };
 
@@ -267,7 +250,7 @@ async fn main() -> Result<(), anyhow::Error> {
                         .header("Accept", "application/vnd.github+json")
                         .header("Content-Type", "application/zip")
                         .bearer_auth(github_token)
-                        .body(mrpack_file_contents.clone())
+                        .body(version_info.file_contents.clone())
                         .send().await {
                             Ok(_) => println!("Successfully uploaded release asset!"),
                             Err(_) => println!("Failed to upload release asset.")
@@ -285,13 +268,13 @@ async fn main() -> Result<(), anyhow::Error> {
             println!("Uploading to Modrinth...");
 
             let modrinth_req = VersionRequest {
-                name: version_name.clone(),
+                name: version_info.version_name.clone(),
                 version_number: pack_file.version,
                 changelog: Some(changelog_markdown.to_owned()),
                 dependencies: vec![],
                 game_versions: vec![pack_file.versions.minecraft],
                 version_type: VersionType::RELEASE,
-                loaders: vec![loader.to_string().to_ascii_lowercase()],
+                loaders: vec![version_info.loader.clone().to_ascii_lowercase()],
                 featured: false,
                 requested_status: VersionStatus::LISTED,
                 project_id: modrinth_config.project_id,
@@ -306,7 +289,9 @@ async fn main() -> Result<(), anyhow::Error> {
                 ))
             };
 
-            let file_part = match reqwest::multipart::Part::bytes(mrpack_file_contents)
+            let file_part = match reqwest::multipart::Part::bytes(
+                version_info.file_contents.clone()
+            )
                 .file_name(output_file_info.file_name.clone())
                 .mime_str("application/zip") {
                 Ok(part) => part,
@@ -398,7 +383,7 @@ async fn main() -> Result<(), anyhow::Error> {
                 );
 
                 let embed = Embed::fake(|e| {
-                    e.title(format!("{} {}", discord_config.title_emoji, version_name))
+                    e.title(format!("{} {}", discord_config.title_emoji, version_info.version_name))
                         .description(description)
                         .image(discord_config.embed_image_url)
                         .footer(|f| {
