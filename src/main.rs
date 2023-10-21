@@ -187,6 +187,8 @@ async fn main() -> Result<(), anyhow::Error> {
                 Err(err) => println!("{}", err)
             }
 
+            // Send Discord webhook
+
             if discord {
                 let discord_config = match config_file.discord {
                     Some(config) => config,
@@ -220,12 +222,11 @@ async fn main() -> Result<(), anyhow::Error> {
                 };
 
                 let description = format!("\
-                **New release!** {}\n\n\
+                **New release!**\n\n\
                 {} [GitHub](https://github.com/{}/{}/releases/latest)\n\
                 {} [Modrinth]({}/modpack/{})\n\n\
                 {}
                 ",
-                    discord_config.discord_ping_role,
                     discord_config.github_emoji_id,
                     config_file.github.repo_owner,
                     config_file.github.repo_name,
@@ -237,6 +238,10 @@ async fn main() -> Result<(), anyhow::Error> {
 
                 let embed = Embed::fake(|e| {
                     e.title(format!("{} {}", discord_config.title_emoji, version_info.version_name))
+                        .color(
+                            modrinth_project.color
+                                .unwrap_or(discord_config.embed_default_color as i32)
+                        )
                         .description(description)
                         .image(discord_config.embed_image_url)
                         .footer(|f| {
@@ -256,6 +261,7 @@ async fn main() -> Result<(), anyhow::Error> {
 
                 webhook.execute(&http, true, |w| {
                     w
+                        .content(discord_config.discord_ping_role)
                         .embeds(vec![embed])
                 }).await?;
 

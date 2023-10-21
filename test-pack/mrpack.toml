@@ -15,3 +15,4 @@ modrinth_emoji_id = "<:modrinth:1000522854766497813>"
 discord_ping_role = "<@&1000858651243843765>"
 title_emoji = "💖"
 embed_image_url = "https://raw.githubusercontent.com/LilydevMC/CozyCreations/main/assets/project_banner.png?token=GHSAT0AAAAAACGZZ7WQK4C6IRGVDZ6SUSHWZJPCB5A"
+embed_default_color = 0xd55de3
