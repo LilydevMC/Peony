@@ -49,7 +49,7 @@ jobs:
         with:
           command: update
       - name: Install Cargo Edit
-        run: cargo install -f --no-default-features --features "set-version"
+        run: cargo install cargo-edit --no-default-features --features "set-version"
       - name: Set version
         run: cargo set-version ${{ github.event.inputs.version }}
       - name: Build binary
