@@ -56,7 +56,7 @@ jobs:
         with:
           command: ${{ matrix.platform.command }}
           target: ${{ matrix.platform.target }}
-          args: "--locked --release --config ${{ vars.version_arg }}"
+          args: "--locked --release --config ${{ vars.VERSION_ARG }}"
           strip: true
       # ripped from https://github.com/houseabsolute/precious/blob/master/.github/workflows/ci.yml
       - name: Package as archive
