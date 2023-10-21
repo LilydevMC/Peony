@@ -17,7 +17,7 @@ jobs:
   release:
     name: Release - ${{ matrix.platform.release_for }}
     env:
-      VERSION_ARG: 'package.version=\"${{ github.event.inputs.version }}\"'
+      VERSION_ARG: "'package.version=\"${{ github.event.inputs.version }}\"'"
     strategy:
       matrix:
         platform:
@@ -50,7 +50,7 @@ jobs:
         if: matrix.platform.os == 'windows-latest'
         run: echo "Windows :("
         env:
-          VERSION_ARG: 'package.version=\\\"${{ github.event.inputs.version }}\\\"'
+          VERSION_ARG: "'package.version=\\\"${{ github.event.inputs.version }}\\\"'"
       - name: Build binary
         uses: houseabsolute/actions-rust-cross@v0
         with:
