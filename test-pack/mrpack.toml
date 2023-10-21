@@ -10,7 +10,7 @@ repo_owner = "LilydevMC"
 repo_name = "mrpack-dist-test"
 
 [discord]
-github_emoji_id = "<:github_light:1000525612911444118>"
+github_emoji_id = "(ping role so i don't annoy my friends too much)"
 modrinth_emoji_id = "<:modrinth:1000522854766497813>"
 discord_ping_role = "<@&1000858651243843765>"
 title_emoji = "💖"

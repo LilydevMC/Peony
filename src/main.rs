@@ -8,7 +8,10 @@ use serenity::model::channel::Embed;
 use serenity::model::webhook::Webhook;
 use crate::github::{create_github_release, generate_changelog};
 use crate::models::meta::Config;
-use crate::models::modrinth::{ModrinthUrl, ProjectResponse};
+use crate::models::modrinth::{
+    ModrinthUrl,
+    project::ProjectResponse
+};
 use crate::modrinth::create_modrinth_release;
 use crate::pack::{get_output_file, get_pack_file, write_pack_file};
 use crate::util::create_temp;
@@ -244,13 +247,15 @@ async fn main() -> Result<(), anyhow::Error> {
                     }
                 };
 
+                let release_time = Utc::now().format("%b, %d %Y %r");
+
                 let embed = Embed::fake(|e| {
                     e.title(format!("{} {}", discord_config.title_emoji, version_info.version_name))
                         .color(embed_color)
                         .description(description)
                         .image(discord_config.embed_image_url)
                         .footer(|f| {
-                            f.text(format!("{} UTC", Utc::now().format("%b, %d %Y %r")))
+                            f.text(format!("{} | {} UTC", modrinth_project.project_type, release_time))
                         })
                 });
 

@@ -1,6 +1,13 @@
 use anyhow::anyhow;
 use crate::models::meta::Config;
-use crate::models::modrinth::{ModrinthUrl, VersionRequest, VersionStatus, VersionType};
+use crate::models::modrinth::{
+    ModrinthUrl,
+    version::{
+        VersionRequest,
+        VersionStatus,
+        VersionType
+    }
+};
 use crate::models::pack::PackFile;
 use crate::models::util::OutputFileInfo;
 use crate::models::version::VersionInfo;
