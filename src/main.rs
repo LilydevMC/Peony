@@ -6,8 +6,7 @@ use chrono::Utc;
 use clap::{Parser, Subcommand, command};
 use serenity::model::channel::Embed;
 use serenity::model::webhook::Webhook;
-use crate::github::generate_changelog;
-use crate::models::github::{CreateReleaseRequest, ReleaseResponse};
+use crate::github::{create_github_release, generate_changelog};
 use crate::models::meta::Config;
 use crate::models::modrinth::{ProjectResponse, VersionRequest, VersionStatus, VersionType};
 use crate::pack::{get_output_file, get_pack_file, write_pack_file};
@@ -149,71 +148,14 @@ async fn main() -> Result<(), anyhow::Error> {
 
             // GitHub Release
 
-            println!("Creating GitHub release...");
-
-            let github_token = match env::var("GITHUB_TOKEN") {
-                Ok(token) => token,
-                Err(err) => return Err(anyhow!(
-                    "Failed to get `GITHUB_TOKEN`: {}", err
-                ))
-            };
-
-            let new_release_req_body = CreateReleaseRequest {
-                tag_name: pack_file.version.clone(),
-                name: Some(version_info.version_name.clone()),
-                body: Some(changelog_markdown.clone())
-            };
-
-            let new_release_response = match reqwest::Client::new()
-                .post(
-                    format!(
-                        "https://api.github.com/repos/{}/{}/releases",
-                        config_file.github.repo_owner.clone(),
-                        config_file.github.repo_name.clone()
-                    )
-                )
-                .json(&new_release_req_body)
-                .header("User-Agent", env!("CARGO_PKG_NAME"))
-                .header("Accept", "application/vnd.github+json")
-                .bearer_auth(github_token.clone())
-                .send().await {
-                    Ok(res) => {
-                        match res.json::<ReleaseResponse>().await {
-                            Ok(json) => Ok(json),
-                            Err(err) => Err(err)
-                        }
-                    },
-                Err(err) => {
-                    return Err(anyhow::Error::from(err))
-                }
-            };
-
-            match new_release_response.as_ref() {
-                Ok(release_res) => {
-                    println!("Successfully created GitHub release!");
-                    println!("Uploading release asset to GitHub release...");
-
-                    match reqwest::Client::new()
-                        .post(
-                            format!(
-                                "https://uploads.github.com/repos/{}/{}/releases/{}/assets?name=\"{}\"",
-                                config_file.github.repo_owner,
-                                config_file.github.repo_name,
-                                release_res.id,
-                                &output_file_info.file_name
-                            )
-                        )
-                        .header("User-Agent", env!("CARGO_PKG_NAME"))
-                        .header("Accept", "application/vnd.github+json")
-                        .header("Content-Type", "application/zip")
-                        .bearer_auth(github_token)
-                        .body(version_info.file_contents.clone())
-                        .send().await {
-                            Ok(_) => println!("Successfully uploaded release asset!"),
-                            Err(_) => println!("Failed to upload release asset.")
-                    };
-
-                },
+            match create_github_release(
+                &config_file,
+                &pack_file,
+                &output_file_info,
+                &version_info,
+                &changelog_markdown
+            ).await {
+                Ok(_) => (),
                 Err(err) => println!("Failed to create GitHub release: {}", err)
             }
 
