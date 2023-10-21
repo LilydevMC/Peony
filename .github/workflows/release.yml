@@ -1,32 +1,44 @@
+# From https://github.com/marketplace/actions/build-rust-projects-with-cross
+
 name: Release
 
-on:
-  release:
-    types:
-      - created
+on: workflow_dispatch
 
 jobs:
   release:
-    name: release ${{ matrix.target }}
-    runs-on: ubuntu-latest
+    name: Release - ${{ matrix.platform.release_for }}
     strategy:
-      fail-fast: false
       matrix:
-        include:
-          - target: x86_64-pc-windows-gnu
-            archive: zip
-          - target: x86_64-unknown-linux-musl
-            archive: tar.gz
-          - target: x86_64-apple-darwin
-            archive: zip
+        platform:
+          - release_for: Linux-x86_64
+            os: ubuntu-20.04
+            target: x86_64-unknown-linux-gnu
+            bin: mrpack-distributor
+            name: mrpack-distributor_Linux-x86_64.tar.gz
+            command: build
+
+          - release_for: Windows-x86_64
+            os: windows-latest
+            target: x86_64-pc-windows-msvc
+            bin: mrpack-distributor.exe
+            name: mrpack-distributor_Windows-x86_64.zip
+            command: build
+
+          - release_for: macOS-x86_64
+            os: macOS-latest
+            target: x86_64-apple-darwin
+            bin: mrpack-distributor
+            name: mrpack-distributor_Darwin-x86_64.tar.gz
+            command: build
+
+    runs-on: ${{ matrix.platform.os }}
     steps:
-      - uses: actions/checkout@master
-      - name: Compile and release
-        uses: rust-build/rust-build.action@v1.4.3
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          RUSTFLAGS: '-C target-feature=-crt-static'
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Build binary
+        uses: houseabsolute/actions-rust-cross@v0
         with:
-          RUSTTARGET: ${{ matrix.target }}
-          TOOLCHAIN_VERSION: stable
-          ARCHIVE_TYPES: ${{ matrix.archive }}
+          command: ${{ matrix.platform.command }}
+          target: ${{ matrix.platform.target }}
+          args: "--locked --release"
+          strip: true
