@@ -44,6 +44,15 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+      # cache configuration from https://stackoverflow.com/a/64702025/15076207
+      - name: Cargo cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
       - name: Build binary (Windows)
         if: matrix.platform.os == 'windows-latest'
         uses: houseabsolute/actions-rust-cross@v0
