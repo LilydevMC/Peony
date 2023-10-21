@@ -17,7 +17,7 @@ jobs:
   release:
     name: Release - ${{ matrix.platform.release_for }}
     env:
-      VERSION_ARG: \'package.version=\"${{ github.event.inputs.version }}\"\'
+      VERSION_ARG: "'package.version=\"${{ github.event.inputs.version }}\"'"
     strategy:
       matrix:
         platform:
@@ -50,13 +50,13 @@ jobs:
         if: matrix.platform.os == 'windows-latest'
         run: echo "Windows :("
         env:
-          VERSION_ARG: \'package.version=\\\"${{ github.event.inputs.version }}\\\"\'
+          VERSION_ARG: "'package.version=\\\"${{ github.event.inputs.version }}\\\"'"
       - name: Build binary
         uses: houseabsolute/actions-rust-cross@v0
         with:
           command: ${{ matrix.platform.command }}
           target: ${{ matrix.platform.target }}
-          args: "--locked --release --config $VERSION_ARG"
+          args: "--locked --release --config ${{ env.VERSION_ARG }}"
           strip: true
       # ripped from https://github.com/houseabsolute/precious/blob/master/.github/workflows/ci.yml
       - name: Package as archive
