@@ -5,13 +5,7 @@
 
 name: Release
 
-on:
-  workflow_dispatch:
-    inputs:
-      version:
-        type: string
-        description: Binary version
-        required: true
+on: workflow_dispatch
 
 jobs:
   release:
@@ -44,7 +38,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      # cache configuration from https://stackoverflow.com/a/64702025/15076207
+      # ripped from https://stackoverflow.com/a/64702025/15076207
       - name: Cargo cache
         uses: actions/cache@v3
         with:
@@ -53,21 +47,12 @@ jobs:
             ~/.cargo/git
             target
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-      - name: Build binary (Windows)
-        if: matrix.platform.os == 'windows-latest'
+      - name: Build binary
         uses: houseabsolute/actions-rust-cross@v0
         with:
           command: ${{ matrix.platform.command }}
           target: ${{ matrix.platform.target }}
-          args: "--locked --release --config 'package.version=\\\"${{ github.event.inputs.version }}\\\"'"
-          strip: true
-      - name: Build binary (Non-Windows)
-        if: matrix.platform.os != 'windows-latest'
-        uses: houseabsolute/actions-rust-cross@v0
-        with:
-          command: ${{ matrix.platform.command }}
-          target: ${{ matrix.platform.target }}
-          args: "--locked --release --config 'package.version=\"${{ github.event.inputs.version }}\"'"
+          args: "--locked --release"
           strip: true
       # ripped from https://github.com/houseabsolute/precious/blob/master/.github/workflows/ci.yml
       - name: Package as archive
