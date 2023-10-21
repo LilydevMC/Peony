@@ -307,7 +307,7 @@ async fn main() -> Result<(), anyhow::Error> {
             };
 
             let file_part = match reqwest::multipart::Part::bytes(mrpack_file_contents)
-                .file_name(&output_file_info.file_name)
+                .file_name(output_file_info.file_name.clone())
                 .mime_str("application/zip") {
                 Ok(part) => part,
                 Err(err) => return Err(anyhow!(
