@@ -44,12 +44,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - name: Set Version
-        run: sed -i 's/version = "0.1.0"/version = "${{ github.event.inputs.version }}"/g' Cargo.toml
       - name: Update Cargo.lock
         uses: actions-rs/cargo@v1
         with:
           command: update
+      - name: Install Cargo Edit
+        run: cargo install -f --no-default-features --features "set-version"
+      - name: Set version
+        run: cargo set-version ${{ github.event.inputs.version }}
       - name: Build binary
         uses: houseabsolute/actions-rust-cross@v0
         with:
