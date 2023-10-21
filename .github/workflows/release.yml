@@ -74,5 +74,5 @@ jobs:
       - name: Publish artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: mrpack-distributor_${{ matrix.platform.os_name }}
+          name: "artifacts"
           path: "mrpack-distributor_*"
