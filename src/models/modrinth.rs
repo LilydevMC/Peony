@@ -7,7 +7,7 @@ pub struct ModrinthUrl {
 }
 
 impl ModrinthUrl {
-    pub fn new(&self, modrinth_config: ModrinthConfig) -> Self {
+    pub fn new(modrinth_config: &ModrinthConfig) -> Self {
         let knossos_url = match modrinth_config.staging {
             Some(is_staging) => match is_staging {
                 true => "https://staging.modrinth.com",

@@ -8,7 +8,8 @@ use serenity::model::channel::Embed;
 use serenity::model::webhook::Webhook;
 use crate::github::{create_github_release, generate_changelog};
 use crate::models::meta::Config;
-use crate::models::modrinth::{ProjectResponse, VersionRequest, VersionStatus, VersionType};
+use crate::models::modrinth::{ModrinthUrl, ProjectResponse};
+use crate::modrinth::create_modrinth_release;
 use crate::pack::{get_output_file, get_pack_file, write_pack_file};
 use crate::util::create_temp;
 use crate::version::get_version_info;
@@ -162,25 +163,6 @@ async fn main() -> Result<(), anyhow::Error> {
 
             // Modrinth Release
 
-            let modrinth_config = config_file.modrinth;
-
-            println!("Uploading to Modrinth...");
-
-            let modrinth_req = VersionRequest {
-                name: version_info.version_name.clone(),
-                version_number: pack_file.version,
-                changelog: Some(changelog_markdown.to_owned()),
-                dependencies: vec![],
-                game_versions: vec![pack_file.versions.minecraft],
-                version_type: VersionType::RELEASE,
-                loaders: vec![version_info.loader.clone().to_ascii_lowercase()],
-                featured: false,
-                requested_status: VersionStatus::LISTED,
-                project_id: modrinth_config.project_id,
-                file_parts: vec!["file".to_string()],
-                primary_file: output_file_info.file_name.clone(),
-            };
-
             let modrinth_token = match env::var("MODRINTH_TOKEN") {
                 Ok(token) => token,
                 Err(err) => return Err(anyhow!(
@@ -188,53 +170,21 @@ async fn main() -> Result<(), anyhow::Error> {
                 ))
             };
 
-            let file_part = match reqwest::multipart::Part::bytes(
-                version_info.file_contents.clone()
-            )
-                .file_name(output_file_info.file_name.clone())
-                .mime_str("application/zip") {
-                Ok(part) => part,
-                Err(err) => return Err(anyhow!(
-                    "Failed to get part from .mrpack file: {}", err
-                ))
-            };
+            let modrinth_url = ModrinthUrl::new(
+                &config_file.modrinth
+                );
 
-            let form = reqwest::multipart::Form::new()
-                .text("data", serde_json::to_string(&modrinth_req).unwrap())
-                .part("file", file_part);
-
-            let knossos_url = match modrinth_config.staging {
-                Some(is_staging) => match is_staging {
-                    true => "https://staging.modrinth.com",
-                    false => "https://modrinth.com"
-                },
-                None => "https://modrinth.com"
-            };
-
-            let labrinth_url = match modrinth_config.staging {
-                Some(is_staging) => match is_staging {
-                    true => "https://staging-api.modrinth.com/v2",
-                    false => "https://api.modrinth.com/v2"
-                },
-                None => "https://api.modrinth.com/v2"
-            };
-
-            let req = match reqwest::Client::new()
-                .post(format!("{}/version", labrinth_url))
-                .header("Authorization", &modrinth_token)
-                .multipart(form)
-                .send().await {
-                    Ok(res) => res,
-                    Err(err) => return Err(anyhow!("Error uploading version: {}", err))
-            };
-
-            if req.status().is_success() {
-                println!("Successfully uploaded version to Modrinth!");
-            } else {
-                return Err(anyhow!(
-                    "Failed to upload version to Modrinth: {}",
-                    req.text().await.unwrap()
-                ))
+            match create_modrinth_release(
+                &config_file,
+                &pack_file,
+                &output_file_info,
+                &version_info,
+                &changelog_markdown,
+                modrinth_token.clone(),
+                &modrinth_url
+            ).await {
+                Ok(_) => (),
+                Err(err) => println!("{}", err)
             }
 
             if discord {
@@ -246,7 +196,11 @@ async fn main() -> Result<(), anyhow::Error> {
                 };
 
                 let modrinth_project = match reqwest::Client::new()
-                    .get(format!("{}/project/{}", labrinth_url, modrinth_req.project_id))
+                    .get(format!(
+                        "{}/project/{}",
+                        modrinth_url.labrinth,
+                        config_file.modrinth.project_id
+                    ))
                     .header("Authorization", modrinth_token)
                     .send().await {
                         Ok(res) => {
@@ -276,7 +230,7 @@ async fn main() -> Result<(), anyhow::Error> {
                     config_file.github.repo_owner,
                     config_file.github.repo_name,
                     discord_config.modrinth_emoji_id,
-                    knossos_url,
+                    modrinth_url.knossos,
                     modrinth_project.slug,
                     changelog_markdown
                 );
