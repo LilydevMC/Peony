@@ -45,7 +45,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
       - name: Set Version
-        run: sed -i ' 's/version = "0.1.0"/version = "${{ github.event.inputs.version }}"/g' Cargo.toml
+        run: sed -i 's/version = "0.1.0"/version = "${{ github.event.inputs.version }}"/g' Cargo.toml
       - name: Build binary
         uses: houseabsolute/actions-rust-cross@v0
         with:
