@@ -48,12 +48,12 @@ jobs:
         if: matrix.platform.os == 'windows-latest'
         run: echo "Windows :("
         env:
-          version_arg: 'package.version=\\\"${{ github.event.inputs.version }}\\\"'
+          version_arg: "'package.version=\\\"${{ github.event.inputs.version }}\\\"'"
       - name: Set version argument (Non-Windows)
         if: matrix.platform.os != 'windows-latest'
         run: echo "Not Windows :)"
         env:
-          version_arg: 'package.version=\"${{ github.event.inputs.version }}\"'
+          version_arg: "'package.version=\"${{ github.event.inputs.version }}\"'"
       - name: Build binary
         uses: houseabsolute/actions-rust-cross@v0
         with:
