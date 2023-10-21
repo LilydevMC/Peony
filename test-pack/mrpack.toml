@@ -10,9 +10,9 @@ repo_owner = "LilydevMC"
 repo_name = "mrpack-dist-test"
 
 [discord]
-github_emoji_id = "(ping role so i don't annoy my friends too much)"
+github_emoji_id = "<:github_light:1000525612911444118>"
 modrinth_emoji_id = "<:modrinth:1000522854766497813>"
-discord_ping_role = "<@&1000858651243843765>"
+discord_ping_role = "(ping role so i don't annoy my friends too much)"
 title_emoji = "💖"
 embed_image_url = "https://raw.githubusercontent.com/LilydevMC/CozyCreations/main/assets/project_banner.png?token=GHSAT0AAAAAACGZZ7WQK4C6IRGVDZ6SUSHWZJPCB5A"
 embed_color = 0xd55de3

@@ -1,5 +1,5 @@
 use serde::{Serialize, Deserialize};
-use crate::models::meta::ModrinthConfig;
+use crate::models::ModrinthConfig;
 
 pub mod project;
 pub mod version;

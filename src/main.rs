@@ -7,7 +7,7 @@ use clap::{Parser, Subcommand, command};
 use serenity::model::channel::Embed;
 use serenity::model::webhook::Webhook;
 use crate::github::{create_github_release, generate_changelog};
-use crate::models::meta::Config;
+use crate::models::Config;
 use crate::models::modrinth::{
     ModrinthUrl,
     project::ProjectResponse

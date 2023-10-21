@@ -5,5 +5,3 @@ pub struct VersionInfo {
     pub file_contents: Vec<u8>
 }
 
-
-

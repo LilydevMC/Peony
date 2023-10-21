@@ -1,6 +1,6 @@
 use std::fs;
 use anyhow::anyhow;
-use crate::models::meta::Config;
+use crate::models::Config;
 use crate::models::pack::PackFile;
 use crate::models::util::OutputFileInfo;
 use crate::models::version::VersionInfo;

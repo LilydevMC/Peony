@@ -1,5 +1,5 @@
 use anyhow::anyhow;
-use crate::models::meta::Config;
+use crate::models::Config;
 use crate::models::modrinth::{
     ModrinthUrl,
     version::{
