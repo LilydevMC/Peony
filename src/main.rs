@@ -4,18 +4,16 @@ use std::process::Command;
 use anyhow::anyhow;
 use chrono::Utc;
 use clap::{Parser, Subcommand, command};
-use glob::glob;
 use serenity::model::channel::Embed;
 use serenity::model::webhook::Webhook;
-use crate::{
-    models::pack::PackFile
-};
 use crate::models::github::{CreateReleaseRequest, ReleaseResponse};
 use crate::models::meta::Config;
 use crate::models::modrinth::{ProjectResponse, VersionRequest, VersionStatus, VersionType};
+use crate::pack::{get_output_file, get_pack_file, write_pack_file};
 use crate::util::create_temp;
 
 mod models;
+mod pack;
 mod util;
 
 
@@ -77,17 +75,10 @@ async fn main() -> Result<(), anyhow::Error> {
                 ))
             };
 
-
-            let file = match fs::read_to_string("pack.toml") {
+            let mut pack_file = match get_pack_file() {
                 Ok(file) => file,
-                Err(err) => return Err(anyhow!("Failed to read pack.toml file: {}", err))
+                Err(err) => return Err(err)
             };
-
-            let file_parsed: PackFile = match toml::from_str(file.as_str()) {
-                Ok(pack) => pack,
-                Err(err) => return Err(anyhow!("Failed to parse pack.toml file: {}", err))
-            };
-            let mut pack_file = file_parsed;
 
             let tmp_info = match create_temp() {
                 Ok(info) => info,
@@ -109,14 +100,9 @@ async fn main() -> Result<(), anyhow::Error> {
 
                     pack_file = new_file_contents;
 
-                    match fs::write(
-                        Path::new(&tmp_info.dir_path).join("pack.toml"),
-                        file_contents_string
-                    ) {
+                    match write_pack_file(&tmp_info.dir_path, file_contents_string) {
                         Ok(_) => (),
-                        Err(err) => return Err(anyhow!(
-                            "Failed to write new pack.toml data: {}", err
-                        ))
+                        Err(err) => return Err(err)
                     }
                 },
                 None => ()
@@ -132,41 +118,9 @@ async fn main() -> Result<(), anyhow::Error> {
                 ))
             }
 
-
-            let glob_pattern = match glob(
-                match Path::new(&tmp_info.dir_path).join("*.mrpack").to_str() {
-                    Some(path) => path,
-                    None => return Err(anyhow!(
-                        "Failed to parse modpack glob to string."
-                    ))
-                }
-            ) {
-                Ok(paths) => paths,
-                Err(err) => return Err(anyhow!(
-                    "Failed to get paths with glob pattern: {}", err
-                ))
-            };
-
-            let mut mrpack_path_res = None;
-            for entry in glob_pattern {
-                mrpack_path_res = Some(entry);
-                break;
-            };
-            let mrpack_path = match mrpack_path_res {
-                Some(path) => match path {
-                    Ok(res) => res,
-                    Err(err) => return Err(anyhow!(
-                        "Failed to parse modpack file path: {}", err
-                    ))
-                },
-                None => return Err(anyhow!("Failed to get modpack file path"))
-            };
-            let file_name = match mrpack_path.file_name() {
-                Some(os_name) => match os_name.to_str() {
-                    Some(name) => name.to_string(),
-                    None => return Err(anyhow!("Failed to parse file name from OsString to &str"))
-                },
-                None => return Err(anyhow!("Failed to get mrpack file name"))
+            let output_file_info = match get_output_file(&tmp_info) {
+                Ok(file_info) => file_info,
+                Err(err) => return Err(err)
             };
 
             let loader_opt = if pack_file.versions.quilt.is_some() {
@@ -192,7 +146,7 @@ async fn main() -> Result<(), anyhow::Error> {
                 .replace("%mc_version%", &pack_file.versions.minecraft)
                 .replace("%loader%", loader);
 
-            let mrpack_file_contents = match fs::read(&*mrpack_path) {
+            let mrpack_file_contents = match fs::read(output_file_info.file_path) {
                 Ok(file) => file,
                 Err(err) => return Err(anyhow!(
                     "Failed to read .mrpack file: {}", err
@@ -294,9 +248,6 @@ async fn main() -> Result<(), anyhow::Error> {
                 }
             };
 
-
-
-
             match new_release_response.as_ref() {
                 Ok(release_res) => {
                     println!("Successfully created GitHub release!");
@@ -309,7 +260,7 @@ async fn main() -> Result<(), anyhow::Error> {
                                 config_file.github.repo_owner,
                                 config_file.github.repo_name,
                                 release_res.id,
-                                file_name.replace(" ", "%20")
+                                &output_file_info.file_name
                             )
                         )
                         .header("User-Agent", env!("CARGO_PKG_NAME"))
@@ -345,7 +296,7 @@ async fn main() -> Result<(), anyhow::Error> {
                 requested_status: VersionStatus::LISTED,
                 project_id: modrinth_config.project_id,
                 file_parts: vec!["file".to_string()],
-                primary_file: file_name.to_string(),
+                primary_file: output_file_info.file_name.clone(),
             };
 
             let modrinth_token = match env::var("MODRINTH_TOKEN") {
@@ -356,7 +307,7 @@ async fn main() -> Result<(), anyhow::Error> {
             };
 
             let file_part = match reqwest::multipart::Part::bytes(mrpack_file_contents)
-                .file_name(file_name)
+                .file_name(&output_file_info.file_name)
                 .mime_str("application/zip") {
                 Ok(part) => part,
                 Err(err) => return Err(anyhow!(
