@@ -28,5 +28,5 @@ pub struct DiscordConfig {
     pub discord_ping_role: String,
     pub title_emoji: String,
     pub embed_image_url: String,
-    pub embed_default_color: u32
+    pub embed_color: Option<u32>
 }

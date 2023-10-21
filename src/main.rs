@@ -236,12 +236,17 @@ async fn main() -> Result<(), anyhow::Error> {
                     changelog_markdown
                 );
 
+                let embed_color = match discord_config.embed_color {
+                    Some(color) => color as i32,
+                    None => match modrinth_project.color {
+                        Some(color) => color,
+                        None => 0x1e1f22
+                    }
+                };
+
                 let embed = Embed::fake(|e| {
                     e.title(format!("{} {}", discord_config.title_emoji, version_info.version_name))
-                        .color(
-                            modrinth_project.color
-                                .unwrap_or(discord_config.embed_default_color as i32)
-                        )
+                        .color(embed_color)
                         .description(description)
                         .image(discord_config.embed_image_url)
                         .footer(|f| {
