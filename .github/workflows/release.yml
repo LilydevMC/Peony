@@ -49,7 +49,7 @@ jobs:
         with:
           command: ${{ matrix.platform.command }}
           target: ${{ matrix.platform.target }}
-          args: "--locked --release --config 'package.version=\"${{ github.event.inputs.version }}\"'"
+          args: "--locked --release --config 'package.version=\\\"${{ github.event.inputs.version }}\\\"'"
           strip: true
       # ripped from https://github.com/houseabsolute/precious/blob/master/.github/workflows/ci.yml
       - name: Package as archive
