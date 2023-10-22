@@ -22,8 +22,8 @@ on:
         default: true
 
 jobs:
-  release:
-    name: Release - ${{ matrix.platform.release_for }}
+  build:
+    name: Build - ${{ matrix.platform.release_for }}
     strategy:
       matrix:
         platform:
@@ -49,6 +49,8 @@ jobs:
             command: build
 
     runs-on: ${{ matrix.platform.os }}
+    outputs:
+      release_version: steps.read_version.outputs.value
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -96,32 +98,33 @@ jobs:
           name: "artifacts"
           path: "mrpack-distributor_*"
 
-      # SHA commands from https://stackoverflow.com/questions/59810838/how-to-get-the-short-sha-for-the-github-workflow
-      - name: Get short commit SHA (Windows)
-        if: ${{ github.event.inputs.create_release && matrix.platform.os == 'windows-latest' }}
-        run: echo "SHORT_SHA=$("${{ github.sha }}".SubString(0, 8))" >> $env:GITHUB_ENV
 
-      - name: Get short commit SHA (Unix)
-        if: ${{ github.event.inputs.create_release && matrix.platform.os != 'windows-latest' }}
+
+  release:
+    needs: build
+    if: ${{ github.event.inputs.create_release }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      # SHA commands from https://stackoverflow.com/questions/59810838/how-to-get-the-short-sha-for-the-github-workflow
+      - name: Get short commit SHA
         run: echo "SHORT_SHA=`git rev-parse --short HEAD`" >> $GITHUB_ENV
 
       - name: Create tag
-        if: ${{ github.event.inputs.create_release }}
         uses: rickstaa/action-create-tag@v1
         with:
-          tag: ${{ steps.read_version.outputs.value }}-${{ env.SHORT_SHA }}
+          tag: ${{ needs.build.outputs.release_version }}-${{ env.SHORT_SHA }}
           tag_exists_error: true
 
       - name: Create release
-        if: ${{ github.event.inputs.create_release }}
         uses: softprops/action-gh-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ steps.read_version.outputs.value }}-${{ env.SHORT_SHA }}
-          name: ${{ steps.read_version.outputs.value }}-${{ env.SHORT_SHA }}
+          tag_name: ${{ needs.build.outputs.release_version }}-${{ env.SHORT_SHA }}
+          name: ${{ needs.build.outputs.release_version }}-${{ env.SHORT_SHA }}
           draft: ${{ github.event.inputs.draft }}
           prerelease: ${{ github.event.inputs.prerelease }}
           files: "mrpack-distributor_*"
-
-
