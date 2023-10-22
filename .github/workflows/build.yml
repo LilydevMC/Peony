@@ -13,15 +13,15 @@ jobs:
           - release_for: Linux-x86_64
             os: ubuntu-20.04
             target: x86_64-unknown-linux-gnu
-            bin: mrpack-distributor
-            name: mrpack-distributor_Linux-x86_64.tar.gz
+            bin: peony
+            name: peony_Linux-x86_64.tar.gz
             command: build
 
           - release_for: Windows-x86_64
             os: windows-latest
             target: x86_64-pc-windows-msvc
-            bin: mrpack-distributor.exe
-            name: mrpack-distributor_Windows-x86_64.zip
+            bin: peony.exe
+            name: peony_Windows-x86_64.zip
             command: build
 
     runs-on: ${{ matrix.platform.os }}
