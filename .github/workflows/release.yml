@@ -52,12 +52,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+
       - name: Read version
         uses: SebRollen/toml-action@v1.0.2
         id: read_version
         with:
           file: 'Cargo.toml'
           field: 'package.version'
+
       # ripped from https://stackoverflow.com/a/64702025/15076207
       - name: Cargo cache
         uses: actions/cache@v3
@@ -67,6 +69,7 @@ jobs:
             ~/.cargo/git
             target
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
       - name: Build binary
         uses: houseabsolute/actions-rust-cross@v0
         with:
@@ -74,6 +77,7 @@ jobs:
           target: ${{ matrix.platform.target }}
           args: "--locked --release"
           strip: true
+
       # ripped from https://github.com/houseabsolute/precious/blob/master/.github/workflows/ci.yml
       - name: Package as archive
         shell: bash
@@ -85,24 +89,29 @@ jobs:
             tar czvf ../../../${{ matrix.platform.name }} ${{ matrix.platform.bin }}
           fi
           cd -
+
       - name: Publish artifacts
         uses: actions/upload-artifact@v3
         with:
           name: "artifacts"
           path: "mrpack-distributor_*"
+
       # SHA commands from https://stackoverflow.com/questions/59810838/how-to-get-the-short-sha-for-the-github-workflow
       - name: Get short commit SHA (Windows)
         if: ${{ github.event.inputs.create_release && matrix.platform.os == 'windows-latest' }}
         run: echo "SHORT_SHA=$("${{ github.sha }}".SubString(0, 8))" >> $env:GITHUB_ENV
+
       - name: Get short commit SHA (Unix)
         if: ${{ github.event.inputs.create_release && matrix.platform.os != 'windows-latest' }}
         run: echo "SHORT_SHA=`git rev-parse --short HEAD`" >> $GITHUB_ENV
+
       - name: Create tag
         if: ${{ github.event.inputs.create_release }}
         uses: rickstaa/action-create-tag@v1
         with:
           tag: ${{ steps.read_version.outputs.value }}-${{ env.SHORT_SHA }}
           tag_exists_error: true
+
       - name: Create release
         if: ${{ github.event.inputs.create_release }}
         uses: softprops/action-gh-release@v1
