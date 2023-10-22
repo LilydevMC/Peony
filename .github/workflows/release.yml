@@ -97,6 +97,12 @@ jobs:
       - name: Get short commit SHA (Unix)
         if: ${{ github.event.inputs.create_release && matrix.platform.os != 'windows-latest' }}
         run: echo "SHORT_SHA=`git rev-parse --short HEAD`" >> $GITHUB_ENV
+      - name: Create tag
+        if: ${{ github.event.inputs.create_release }}
+        uses: rickstaa/action-create-tag@v1
+        with:
+          tag: ${{ steps.read_version.outputs.value }}-${{ env.SHORT_SHA }}
+          tag_exists_error: true
       - name: Create release
         if: ${{ github.event.inputs.create_release }}
         uses: softprops/action-gh-release@v1
