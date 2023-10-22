@@ -120,8 +120,6 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: artifacts
-      - name: Unzip artifacts
-        run: unzip artifacts.zip
 
       - name: Create release
         uses: softprops/action-gh-release@v1
