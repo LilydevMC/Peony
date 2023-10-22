@@ -90,8 +90,12 @@ jobs:
         with:
           name: "artifacts"
           path: "mrpack-distributor_*"
-      - name: Get short commit sha
-        if: ${{ github.event.inputs.create_release }}
+      # SHA commands from https://stackoverflow.com/questions/59810838/how-to-get-the-short-sha-for-the-github-workflow
+      - name: Get short commit SHA (Windows)
+        if: ${{ github.event.inputs.create_release }} && ${{ matrix.platform.os }} == 'windows-latest'
+        run: echo "SHORT_SHA=$("${{ github.sha }}".SubString(0, 8))" >> $env:GITHUB_ENV
+      - name: Get short commit SHA (Unix)
+        if: ${{ github.event.inputs.create_release }} && ${{ matrix.platform.os }} != 'windows-latest'
         run: echo "SHORT_SHA=`git rev-parse --short HEAD`" >> $GITHUB_ENV
       - name: Create release
         if: ${{ github.event.inputs.create_release }}
