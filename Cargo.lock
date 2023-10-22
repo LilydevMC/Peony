@@ -815,28 +815,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "mrpack-distributor"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "chrono",
- "clap",
- "dotenvy",
- "fs_extra",
- "futures",
- "glob",
- "reqwest",
- "serde",
- "serde_json",
- "serenity",
- "tokio",
- "tokio-util",
- "toml",
- "uuid",
- "which",
-]
-
-[[package]]
 name = "num-traits"
 version = "0.2.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -900,6 +878,28 @@ dependencies = [
  "redox_syscall",
  "smallvec",
  "windows-targets",
+]
+
+[[package]]
+name = "peony"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "clap",
+ "dotenvy",
+ "fs_extra",
+ "futures",
+ "glob",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "serenity",
+ "tokio",
+ "tokio-util",
+ "toml",
+ "uuid",
+ "which",
 ]
 
 [[package]]

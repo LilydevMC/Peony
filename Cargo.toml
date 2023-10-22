@@ -1,5 +1,5 @@
 [package]
-name = "mrpack-distributor"
+name = "peony"
 version = "0.1.0"
 authors = ["Jade Nash <jade@lilydev.com>"]
 description = "Builds from a packwiz project and distributes it to Modrinth and/or GitHub Releases."

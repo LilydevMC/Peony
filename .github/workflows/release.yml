@@ -96,7 +96,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: "artifacts"
-          path: "mrpack-distributor_*"
+          path: "peony_*"
 
   release:
     needs: build
@@ -127,7 +127,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ needs.build.outputs.release_version }}-${{ env.SHORT_SHA }}
-          name: ${{ needs.build.outputs.release_version }}-${{ env.SHORT_SHA }}
+          name: Peony ${{ needs.build.outputs.release_version }}-${{ env.SHORT_SHA }}
           draft: ${{ github.event.inputs.draft }}
           prerelease: ${{ github.event.inputs.prerelease }}
-          files: "mrpack-distributor_*"
+          files: "peony_*"
