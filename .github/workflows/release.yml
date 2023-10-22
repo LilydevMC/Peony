@@ -11,15 +11,15 @@ on:
       create_release:
         type: boolean
         description: Create release
-        default: false
+        default: true
       draft:
         type: boolean
         description: Draft release
-        default: true
+        default: false
       prerelease:
         type: boolean
         description: Prerelease
-        default: true
+        default: false
 
 jobs:
   build:
