@@ -5,7 +5,21 @@
 
 name: Release
 
-on: workflow_dispatch
+on:
+  workflow_dispatch:
+    inputs:
+      create_release:
+        type: boolean
+        description: Create release
+        default: false
+      draft:
+        type: boolean
+        description: Draft release
+        default: true
+      prerelease:
+        type: boolean
+        description: Prerelease
+        default: true
 
 jobs:
   release:
@@ -38,6 +52,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+      - name: Read version
+        uses: SebRollen/toml-action@v1.0.2
+        id: read_version
+        with:
+          file: 'Cargo.toml'
+          field: 'package.version'
       # ripped from https://stackoverflow.com/a/64702025/15076207
       - name: Cargo cache
         uses: actions/cache@v3
@@ -70,3 +90,16 @@ jobs:
         with:
           name: "artifacts"
           path: "mrpack-distributor_*"
+      - name: Create release
+        if: ${{ github.event.inputs.create_release }}
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.read_version.outputs.value }}-${{ github.ref }}
+          name: ${{ steps.read_version.outputs.value }}-${{ github.ref }}
+          draft: ${{ github.event.inputs.draft }}
+          prerelease: ${{ github.event.inputs.prerelease }}
+          files: "mrpack-distributor_*"
+
+
