@@ -115,6 +115,7 @@ jobs:
         with:
           tag: ${{ needs.build.outputs.release_version }}-${{ env.SHORT_SHA }}
           tag_exists_error: true
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Download artifacts
         uses: actions/download-artifact@v3
