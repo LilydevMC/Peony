@@ -90,14 +90,17 @@ jobs:
         with:
           name: "artifacts"
           path: "mrpack-distributor_*"
+      - name: Get short commit sha
+        if: ${{ github.event.inputs.create_release }}
+        run: echo "SHORT_SHA=`git rev-parse --short HEAD`" >> $GITHUB_ENV
       - name: Create release
         if: ${{ github.event.inputs.create_release }}
         uses: softprops/action-gh-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ steps.read_version.outputs.value }}-${{ github.ref }}
-          name: ${{ steps.read_version.outputs.value }}-${{ github.ref }}
+          tag_name: ${{ steps.read_version.outputs.value }}-${{ env.SHORT_SHA }}
+          name: ${{ steps.read_version.outputs.value }}-${{ env.SHORT_SHA }}
           draft: ${{ github.event.inputs.draft }}
           prerelease: ${{ github.event.inputs.prerelease }}
           files: "mrpack-distributor_*"
