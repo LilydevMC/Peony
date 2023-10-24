@@ -17,8 +17,8 @@ pub fn create_temp() -> Result<TempInfo, anyhow::Error> {
     match fs::create_dir(&new_tmp_dir) {
         Ok(_) => (),
         Err(err) => return Err(anyhow!(
-                    "Failed to create temporary directory: {}", err
-                ))
+            "Failed to create temporary directory: {}", err
+        ))
     }
 
     let copy_files_res: Result<(), anyhow::Error> = match fs_extra::dir::copy(

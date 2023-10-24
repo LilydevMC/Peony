@@ -2,11 +2,11 @@
 name = "peony"
 version = "0.1.0"
 authors = ["Jade Nash <jade@lilydev.com>"]
-description = "Builds from a packwiz project and distributes it to Modrinth and/or GitHub Releases."
-keywords = ["minecraft", "utility", "modrinth", "modpack"]
+description = "Builds a Minecraft project and distributes it to Modrinth and/or GitHub Releases."
+keywords = ["minecraft", "utility", "modrinth", "modpack", "mod"]
 readme = "README.md"
 license = "MIT OR Apache-2.0"
-repository = "https://github.com/LilydevMC/mrpack-distributor"
+repository = "https://github.com/LilydevMC/Peony"
 edition = "2021"
 
 
@@ -25,7 +25,7 @@ toml = "0.8.2"
 serde = { version = "1.0.189", features = ["derive"] }
 serde_json = "1.0.107"
 
-which = "4.4.2"
+which = "5.0.0"
 uuid = { version = "1.4.1", features = ["v4", "fast-rng"] }
 chrono = "0.4.31"
 

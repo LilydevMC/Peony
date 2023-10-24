@@ -39,12 +39,17 @@ struct CliArgs {
 
 #[derive(Debug, Subcommand)]
 enum Commands {
-    #[command(about = "Runs configurations.")]
-    Run {
+    #[command(about = "Export and upload Packwiz modpack")]
+    Modpack {
         #[clap(long, short, help = "Whether or not to send Discord webhook")]
         discord: bool,
         #[clap(long, short, help = "Custom version number")]
         version: Option<String>
+    },
+    #[command(about = "Build and upload Fabric/Quilt mod")]
+    Mod {
+        #[clap(long, short, help = "Whether or not to send Discord webhook")]
+        discord: bool
     }
 }
 
@@ -63,7 +68,7 @@ async fn main() -> Result<(), anyhow::Error> {
     }
 
     match args.commands {
-        Commands::Run { discord, version } => {
+        Commands::Modpack { discord, version } => {
             if !Path::new("mrpack.toml").exists() {
                 return Err(anyhow!("Failed to find `mrpack.toml` file."))
             }
@@ -283,6 +288,13 @@ async fn main() -> Result<(), anyhow::Error> {
 
 
             util::clean_up(&tmp_info.dir_path)?
+        },
+        Commands::Mod { discord } => {
+            println!(
+                "in the future, this will upload a mod to github releases{}",
+                if discord { ", modrinth, and send an embed to discord!" }
+                else { " and modrinth!" }
+            )
         }
     }
     Ok(())
