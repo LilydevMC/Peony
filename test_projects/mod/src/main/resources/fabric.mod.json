@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "id": "template",
+  "version": "${version}",
+
+  "name": "Template Mod",
+  "description": "This is a template mod description!",
+  "authors": [
+    "jadelily18"
+  ],
+  "contact": {
+    "homepage": "https://lilydev.com/",
+    "issues": "https://github.com/Lilydev-by-jade/fabric-template-kotlin/issues",
+    "sources": "https://github.com/Lilydev-by-jade/fabric-template-kotlin"
+  },
+
+  "license": "Unlicense",
+  "icon": "assets/template/icon.png",
+
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      {
+        "adapter": "kotlin",
+        "value": "com.lilydev.template.Template"
+      }
+    ]
+  },
+  "mixins": [
+    "template.mixins.json"
+  ],
+
+  "depends": {
+    "fabricloader": ">=0.14.9",
+    "fabric-api": "*",
+    "minecraft": "~1.20",
+    "java": ">=17",
+    "fabric-language-kotlin": "*"
+  },
+  "suggests": {
+    "another-mod": "modmenu"
+  },
+  "custom": {
+    "modmenu": {
+      "links": {
+        "modmenu.discord": "https://discord.lilydev.com",
+        "modmenu.kofi": "https://ko-fi.com/jadelily"
+      }
+    }
+  }
+}
