@@ -1,16 +1,20 @@
 use anyhow::anyhow;
-use crate::models::Config;
-use crate::models::modrinth::{
-    ModrinthUrl,
-    version::{
-        VersionRequest,
-        VersionStatus,
-        VersionType
-    }
+use crate::models::{
+    modrinth::{
+        ModrinthUrl,
+        version::{
+            VersionRequest,
+            VersionStatus,
+            VersionType,
+        },
+    },
+    project_type::modpack::{
+        config::Config,
+        PackFile
+    },
+    util::OutputFileInfo,
+    version::VersionInfo
 };
-use crate::models::pack::PackFile;
-use crate::models::util::OutputFileInfo;
-use crate::models::version::VersionInfo;
 
 pub async fn create_modrinth_release(
     config: &Config,

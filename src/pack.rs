@@ -2,9 +2,16 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use anyhow::anyhow;
 use glob::glob;
-use crate::models::pack::PackFile;
-use crate::models::util::{OutputFileInfo, TempInfo};
-use crate::util::clean_up;
+
+use crate::{
+    models::{
+        project_type::modpack::PackFile,
+        util::{
+            OutputFileInfo, TempInfo
+        }
+    },
+    util::clean_up
+};
 
 pub fn get_pack_file() -> Result<PackFile, anyhow::Error> {
     let file = match fs::read_to_string("pack.toml") {

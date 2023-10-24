@@ -6,16 +6,23 @@ use chrono::Utc;
 use clap::{Parser, Subcommand, command};
 use serenity::model::channel::Embed;
 use serenity::model::webhook::Webhook;
-use crate::github::{create_github_release, generate_changelog};
-use crate::models::Config;
-use crate::models::modrinth::{
-    ModrinthUrl,
-    project::ProjectResponse
+
+use crate::{
+    github::*,
+    models::{
+        project_type::modpack::config::Config,
+        modrinth::{
+            project::ProjectResponse,
+            ModrinthUrl
+        }
+    },
+    modrinth::{
+        create_modrinth_release
+    },
+    pack::*,
+    util::*,
+    version::*
 };
-use crate::modrinth::create_modrinth_release;
-use crate::pack::{get_output_file, get_pack_file, write_pack_file};
-use crate::util::create_temp;
-use crate::version::get_version_info;
 
 mod github;
 mod models;
@@ -46,7 +53,7 @@ enum Commands {
         #[clap(long, short, help = "Custom version number")]
         version: Option<String>
     },
-    #[command(about = "Build and upload Fabric/Quilt mod")]
+    #[command(about = "Build and upload Fabric/Quilt mc_mod")]
     Mod {
         #[clap(long, short, help = "Whether or not to send Discord webhook")]
         discord: bool,
@@ -290,14 +297,13 @@ async fn main() -> Result<(), anyhow::Error> {
             }
 
 
-            util::clean_up(&tmp_info.dir_path)?
+            clean_up(&tmp_info.dir_path)?
         },
-        Commands::Mod { discord, gradle_args } => {
+        Commands::Mod { discord: _, gradle_args: _ } => {
             match which::which("java") {
                 Ok(_) => (),
                 Err(err) => return Err(anyhow!("Failed to find Java executable: {}", err))
             }
-
 
 
             if env::consts::OS == "windows" && !Path::new("gradlew.bat").exists() {
@@ -306,15 +312,24 @@ async fn main() -> Result<(), anyhow::Error> {
             if env::consts::OS != "windows" && !Path::new("gradlew").exists() {
                 return Err(anyhow!("Failed to find `gradlew` file"))
             }
+            if !Path::new("peony_mod.toml").exists() {
+                return Err(anyhow!("Failed to find `peony_mod.toml` file"))
+            }
+
+
+            let temp_dir = match create_temp() {
+                Ok(info) => {
+                    info
+                },
+                Err(err) => {
+                    return Err(anyhow!("Failed to create temporary directory: {}", err))
+                }
+            };
 
 
 
-            println!(
-                "in the future, this will upload a mod to github releases{}",
-                if discord { ", modrinth, and send an embed to discord!" }
-                else { " and modrinth!" }
-            );
-            println!("Gradle args: {}", gradle_args)
+            clean_up(&temp_dir.dir_path)?
+
         }
     }
     Ok(())

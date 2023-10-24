@@ -56,12 +56,6 @@ impl Loader {
     }
 }
 
-// impl ToString for Loader {
-//     fn to_string(&self) -> String {
-//
-//     }
-// }
-
 #[derive(Debug, Serialize, Deserialize)]
 pub struct DonationObject {
     pub id: String,

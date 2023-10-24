@@ -1,5 +1,7 @@
 use serde::{Serialize, Deserialize};
 
+pub mod config;
+
 // Based on packwiz's pack.toml format here:
 // https://packwiz.infra.link/reference/pack-format/pack-toml/
 #[derive(Debug, Serialize, Deserialize, Clone)]

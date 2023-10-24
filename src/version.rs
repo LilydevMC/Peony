@@ -1,8 +1,9 @@
 use std::fs;
 use anyhow::anyhow;
-use crate::models::Config;
+use crate::models::project_type::modpack::{
+    PackFile, config::Config
+};
 use crate::models::modrinth::Loader::*;
-use crate::models::pack::PackFile;
 use crate::models::util::OutputFileInfo;
 use crate::models::version::VersionInfo;
 

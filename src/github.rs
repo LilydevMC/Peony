@@ -1,11 +1,16 @@
 use std::env;
 use std::process::Command;
 use anyhow::anyhow;
-use crate::models::github::{CreateReleaseRequest, ReleaseResponse};
-use crate::models::Config;
-use crate::models::pack::PackFile;
-use crate::models::util::OutputFileInfo;
-use crate::models::version::VersionInfo;
+
+use crate::models::{
+    github::*,
+    project_type::modpack::{
+        config::Config,
+        PackFile
+    },
+    util::OutputFileInfo,
+    version::VersionInfo
+};
 
 pub async fn generate_changelog(config: &Config) -> Result<String, anyhow::Error> {
     println!("Generating changelog...");
