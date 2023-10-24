@@ -16,7 +16,7 @@ pub struct GithubConfig {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ModrinthConfig {
     pub project_id: String,
-    pub staging: Option<bool>
+    pub staging: Option<bool>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

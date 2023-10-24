@@ -1,5 +1,6 @@
 config_format_version = 1
 version_name_format = "[%mc_version%] %project_name% v%project_version% - %loader%"
+loaders = ["fabric", "quilt"]
 
 [modrinth]
 project_id = "2jZzXrpV"

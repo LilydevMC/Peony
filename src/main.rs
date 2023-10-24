@@ -1,9 +1,12 @@
 use std::{env, fs};
-use std::path::Path;
+use std::io::Read;
+use std::ops::Deref;
+use std::path::{Path, PathBuf};
 use std::process::Command;
 use anyhow::anyhow;
 use chrono::Utc;
 use clap::{Parser, Subcommand, command};
+use glob::glob;
 use serenity::model::channel::Embed;
 use serenity::model::webhook::Webhook;
 
@@ -28,6 +31,7 @@ use crate::{
 };
 
 mod github;
+mod mc_mod;
 mod models;
 mod modrinth;
 mod pack;
@@ -349,6 +353,12 @@ async fn main() -> Result<(), anyhow::Error> {
                 }
             };
 
+            // remove previously-compiled jars, if any
+            match fs::remove_dir(&tmp_info.dir_path.join("build").join("libs")) {
+                Ok(_) => (),
+                Err(_) => ()
+            }
+
             let mut gradle_command = Command::new(gradlew_path);
 
             let gradle_command = gradle_command
@@ -364,6 +374,110 @@ async fn main() -> Result<(), anyhow::Error> {
 
             gradle_child.wait().unwrap();
 
+            let jars = match glob(
+                match Path::new(&tmp_info.dir_path)
+                    .join("build")
+                    .join("libs")
+                    .join("*.jar")
+                    .to_str() {
+                        Some(path) => path,
+                        None => return Err(anyhow!(
+                            "Failed to parse glob to string"
+                        ))
+                    }
+            ) {
+                Ok(paths) => paths,
+                Err(err) => return Err(anyhow!(
+                    "Failed to find files with mod glob: {}", err
+                ))
+            };
+
+            let mut possible_jars: Vec<PathBuf> = vec![];
+            let mut possible_sources_jars: Vec<PathBuf> = vec![];
+
+            for jar in jars {
+                let jar_path = match jar {
+                    Ok(path) => path,
+                    Err(err) => return Err(anyhow!(
+                        "Failed to parse jar glob result as path: {}", err
+                    ))
+                };
+
+                let file_name = match jar_path.file_name() {
+                    Some(name) => match name.to_os_string().into_string() {
+                        Ok(name) => name,
+                        // better error message needed, but fine for now
+                        Err(_) => return Err(anyhow!(
+                            "Failed to parse file name from OsString to String"
+                        ))
+                    },
+                    None => return Err(anyhow!(
+                        "Failed to parse file name from jar path"
+                    ))
+                };
+
+                println!("jar path: {:?}", &jar_path);
+                if file_name.ends_with("-sources.jar") {
+                    possible_sources_jars.push(jar_path)
+                } else if file_name.ends_with(".jar") {
+                    possible_jars.push(jar_path)
+                }
+            }
+
+
+            if possible_jars.len() != 1 {
+                clean_up(&tmp_info.dir_path)?;
+                return Err(anyhow!(
+                    "Found an invalid amount of mod jars: {}",
+                    possible_jars.len())
+                )
+            }
+
+
+            let jar_path = &possible_jars[0];
+            let sources_jar_path: Option<&PathBuf> = match possible_sources_jars.len() {
+                0 => None,
+                1 => Some(&possible_sources_jars[0]),
+                _ => return Err(anyhow!(
+                    "Found an invalid amount of sources jars: {}",
+                    possible_sources_jars.len())
+                )
+            };
+
+            let jar_file = fs::File::open(jar_path)?;
+
+            let mut archive = zip::ZipArchive::new(jar_file)?;
+
+            let mut loader_file =
+                if file_exists_in_zip(&mut archive, "fabric.mod.json") {
+                    match archive.by_name("fabric.mod.json") {
+                        Ok(file) => file,
+                        Err(err) => return Err(anyhow!(
+                            "Failed to get `fabric.mod.json` file from jar: {}", err
+                        ))
+                    }
+                } else if file_exists_in_zip(&mut archive, "quilt.mod.json") {
+                    match archive.by_name("quilt.mod.json") {
+                        Ok(file) => file,
+                        Err(err) => return Err(anyhow!(
+                            "Failed to get `quilt.mod.json` file from jar: {}", err
+                        ))
+                    }
+                } else {
+                    return Err(anyhow!(
+                        "Failed to get `fabric.mod.json` or `quilt.mod.json` from jar"
+                    ))
+                };
+
+            let mut loader_file_string = String::new();
+            loader_file.read_to_string(&mut loader_file_string)?;
+
+            let parsed_loader_file: serde_json::Value = serde_json::from_str(
+                &*loader_file_string
+            )?;
+
+            println!("Mod Version: {}", parsed_loader_file["version"]);
+            println!("Mod ID: {}", parsed_loader_file["id"]);
 
             clean_up(&tmp_info.dir_path)?
 

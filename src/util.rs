@@ -1,4 +1,5 @@
 use std::{env, fs};
+use std::fs::File;
 use std::path::{Path, PathBuf};
 use anyhow::anyhow;
 use crate::models::util::TempInfo;
@@ -59,5 +60,13 @@ pub fn clean_up(tmp_dir: &PathBuf) -> Result<(), anyhow::Error> {
         Err(err) => return Err(anyhow!(
             "Failed to remove temporary directory: {}", err
         ))
+    }
+}
+
+pub fn file_exists_in_zip(archive: &mut zip::ZipArchive<File>, file_name: &str) -> bool {
+    if archive.by_name(file_name).is_ok() {
+        true
+    } else {
+        false
     }
 }
