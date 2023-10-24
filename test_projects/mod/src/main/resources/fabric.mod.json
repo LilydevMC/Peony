@@ -10,11 +10,11 @@
   ],
   "contact": {
     "homepage": "https://lilydev.com/",
-    "issues": "https://github.com/Lilydev-by-jade/fabric-template-kotlin/issues",
-    "sources": "https://github.com/Lilydev-by-jade/fabric-template-kotlin"
+    "issues": "https://github.com/LilydevMC/Peony/issues",
+    "sources": "https://github.com/LilydevMC/Peony"
   },
 
-  "license": "Unlicense",
+  "license": "MIT",
   "icon": "assets/template/icon.png",
 
   "environment": "*",
@@ -27,7 +27,6 @@
     ]
   },
   "mixins": [
-    "template.mixins.json"
   ],
 
   "depends": {
