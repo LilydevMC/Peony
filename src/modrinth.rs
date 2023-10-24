@@ -9,7 +9,7 @@ use crate::models::{
         },
     },
     project_type::modpack::{
-        config::Config,
+        config::ModpackConfig,
         PackFile
     },
     util::OutputFileInfo,
@@ -17,7 +17,7 @@ use crate::models::{
 };
 
 pub async fn create_modrinth_release(
-    config: &Config,
+    config: &ModpackConfig,
     pack_file: &PackFile,
     output_file_info: &OutputFileInfo,
     version_info: &VersionInfo,

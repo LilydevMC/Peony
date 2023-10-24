@@ -1,14 +1,14 @@
 use std::fs;
 use anyhow::anyhow;
 use crate::models::project_type::modpack::{
-    PackFile, config::Config
+    PackFile, config::ModpackConfig
 };
 use crate::models::modrinth::Loader::*;
 use crate::models::util::OutputFileInfo;
 use crate::models::version::VersionInfo;
 
 pub fn get_version_info(
-    config_file: &Config,
+    config_file: &ModpackConfig,
     pack_file: &PackFile,
     output_info: &OutputFileInfo
 ) -> Result<VersionInfo, anyhow::Error> {

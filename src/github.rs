@@ -5,14 +5,14 @@ use anyhow::anyhow;
 use crate::models::{
     github::*,
     project_type::modpack::{
-        config::Config,
+        config::ModpackConfig,
         PackFile
     },
     util::OutputFileInfo,
     version::VersionInfo
 };
 
-pub async fn generate_changelog(config: &Config) -> Result<String, anyhow::Error> {
+pub async fn generate_changelog(config: &ModpackConfig) -> Result<String, anyhow::Error> {
     println!("Generating changelog...");
 
     let first_commit = match Command::new("git")
@@ -68,7 +68,7 @@ pub async fn generate_changelog(config: &Config) -> Result<String, anyhow::Error
 }
 
 pub async fn create_github_release(
-    config: &Config,
+    config: &ModpackConfig,
     pack_file: &PackFile,
     output_file_info: &OutputFileInfo,
     version_info: &VersionInfo,

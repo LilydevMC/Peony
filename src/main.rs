@@ -10,7 +10,10 @@ use serenity::model::webhook::Webhook;
 use crate::{
     github::*,
     models::{
-        project_type::modpack::config::Config,
+        project_type::{
+            modpack::config::ModpackConfig,
+            mc_mod::config::ModConfig
+        },
         modrinth::{
             project::ProjectResponse,
             ModrinthUrl
@@ -85,7 +88,7 @@ async fn main() -> Result<(), anyhow::Error> {
 
             let config_file = match fs::read_to_string("mrpack.toml") {
                 Ok(content_string) => {
-                    let parsed_config: Config = match toml::from_str(&*content_string) {
+                    let parsed_config: ModpackConfig = match toml::from_str(&*content_string) {
                         Ok(config) => config,
                         Err(err) => return Err(anyhow!(
                             "Failed to parse config file: {}", err
@@ -299,25 +302,45 @@ async fn main() -> Result<(), anyhow::Error> {
 
             clean_up(&tmp_info.dir_path)?
         },
-        Commands::Mod { discord: _, gradle_args: _ } => {
+        Commands::Mod { discord, gradle_args } => {
             match which::which("java") {
                 Ok(_) => (),
                 Err(err) => return Err(anyhow!("Failed to find Java executable: {}", err))
             }
 
+            let mut gradlew_path: &Path;
 
-            if env::consts::OS == "windows" && !Path::new("gradlew.bat").exists() {
-                return Err(anyhow!("Failed to find `gradlew.bat` file"))
+            if env::consts::OS == "windows" {
+                gradlew_path = Path::new(".\\gradlew.bat");
+            } else {
+                gradlew_path = Path::new("./gradlew");
             }
-            if env::consts::OS != "windows" && !Path::new("gradlew").exists() {
-                return Err(anyhow!("Failed to find `gradlew` file"))
+
+            if !Path::new(gradlew_path).exists() {
+                return Err(anyhow!("Failed to find gradle script at `{:?}`", gradlew_path))
             }
+
             if !Path::new("peony_mod.toml").exists() {
                 return Err(anyhow!("Failed to find `peony_mod.toml` file"))
             }
 
 
-            let temp_dir = match create_temp() {
+            let config_file = match fs::read_to_string("peony_mod.toml") {
+                Ok(content_string) => {
+                    let parsed_config: ModConfig = match toml::from_str(&*content_string) {
+                        Ok(config) => config,
+                        Err(err) => return Err(anyhow!(
+                            "Failed to parse config file: {}", err
+                        ))
+                    };
+                    parsed_config
+                },
+                Err(err) => return Err(anyhow!(
+                    "Failed to read config file: {}", err
+                ))
+            };
+
+            let tmp_info = match create_temp() {
                 Ok(info) => {
                     info
                 },
@@ -326,9 +349,23 @@ async fn main() -> Result<(), anyhow::Error> {
                 }
             };
 
+            let mut gradle_command = Command::new(gradlew_path);
+
+            let gradle_command = gradle_command
+                .arg(gradle_args)
+                .current_dir(&tmp_info.dir_path);
+
+            let mut gradle_child = match gradle_command.spawn() {
+                Ok(child) => child,
+                Err(err) => return Err(anyhow!(
+                    "Failed to build with Gradle: {}", err
+                ))
+            };
+
+            gradle_child.wait().unwrap();
 
 
-            clean_up(&temp_dir.dir_path)?
+            clean_up(&tmp_info.dir_path)?
 
         }
     }
