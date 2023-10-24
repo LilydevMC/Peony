@@ -27,7 +27,7 @@ mod version;
 
 #[derive(Debug, Parser)]
 #[command(
-    name = "mrpack distributor",
+    name = "peony",
     author,
     version,
     about
@@ -49,7 +49,9 @@ enum Commands {
     #[command(about = "Build and upload Fabric/Quilt mod")]
     Mod {
         #[clap(long, short, help = "Whether or not to send Discord webhook")]
-        discord: bool
+        discord: bool,
+        #[clap(long, short, help = "Args to pass to Gradle", default_value = "build")]
+        gradle_args: String
     }
 }
 
@@ -62,13 +64,14 @@ async fn main() -> Result<(), anyhow::Error> {
 
     let args = CliArgs::parse();
 
-    match which::which("packwiz") {
-        Ok(_) => (),
-        Err(err) => return Err(anyhow!("Failed to find packwiz executable: {}", err))
-    }
-
     match args.commands {
         Commands::Modpack { discord, version } => {
+
+            match which::which("packwiz") {
+                Ok(_) => (),
+                Err(err) => return Err(anyhow!("Failed to find packwiz executable: {}", err))
+            }
+
             if !Path::new("mrpack.toml").exists() {
                 return Err(anyhow!("Failed to find `mrpack.toml` file."))
             }
@@ -289,12 +292,29 @@ async fn main() -> Result<(), anyhow::Error> {
 
             util::clean_up(&tmp_info.dir_path)?
         },
-        Commands::Mod { discord } => {
+        Commands::Mod { discord, gradle_args } => {
+            match which::which("java") {
+                Ok(_) => (),
+                Err(err) => return Err(anyhow!("Failed to find Java executable: {}", err))
+            }
+
+
+
+            if env::consts::OS == "windows" && !Path::new("gradlew.bat").exists() {
+                return Err(anyhow!("Failed to find `gradlew.bat` file"))
+            }
+            if env::consts::OS != "windows" && !Path::new("gradlew").exists() {
+                return Err(anyhow!("Failed to find `gradlew` file"))
+            }
+
+
+
             println!(
                 "in the future, this will upload a mod to github releases{}",
                 if discord { ", modrinth, and send an embed to discord!" }
                 else { " and modrinth!" }
-            )
+            );
+            println!("Gradle args: {}", gradle_args)
         }
     }
     Ok(())
