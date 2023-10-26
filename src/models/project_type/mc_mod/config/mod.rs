@@ -1,7 +1,12 @@
 use serde::{Serialize, Deserialize};
-use crate::models::{DiscordConfig, GithubConfig, ModrinthConfig};
-use crate::models::modrinth::Loader;
+use crate::models::{
+    DiscordConfig,
+    GithubConfig,
+    modrinth::Loader,
+    project_type::mc_mod::config::modrinth::ModrinthConfig
+};
 
+mod modrinth;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ModConfig {

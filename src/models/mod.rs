@@ -1,7 +1,6 @@
 use serde::{Deserialize, Serialize};
 
 pub mod github;
-pub mod meta;
 pub mod modrinth;
 pub mod project_type;
 pub mod util;
@@ -13,6 +12,9 @@ pub struct GithubConfig {
     pub repo_name: String
 }
 
+// Eventually should be moved to models::project_type::modpack::config
+// unnecessary for now, but should be moved before project types other than modpacks
+// and mods are implemented.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ModrinthConfig {
     pub project_id: String,

@@ -2,13 +2,26 @@ config_format_version = 1
 version_name_format = "[%mc_version%] %project_name% v%project_version% - %loader%"
 loaders = ["fabric", "quilt"]
 
+
 [modrinth]
 project_id = "2jZzXrpV"
 staging = true
 
+[[modrinth.dependency]]
+version_id = "aegpoin"
+project_id = "2jZzXrpV"
+dependency_type = "optional"
+
+[[modrinth.dependency]]
+version_id = "aegpoin"
+project_id = "2jZzXrpV"
+dependency_type = "required"
+
+
 [github]
 repo_owner = "LilydevMC"
 repo_name = "mrpack-dist-test"
+
 
 [discord]
 github_emoji_id = "<:github_light:1000525612911444118>"

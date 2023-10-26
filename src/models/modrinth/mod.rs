@@ -81,13 +81,10 @@ pub struct GalleryObject {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
 pub enum DependencyType {
-    #[serde(rename = "required")]
     REQUIRED,
-    #[serde(rename = "optional")]
     OPTIONAL,
-    #[serde(rename = "incompatible")]
     INCOMPATIBLE,
-    #[serde(rename = "embedded")]
     EMBEDDED
 }

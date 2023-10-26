@@ -416,7 +416,6 @@ async fn main() -> Result<(), anyhow::Error> {
                     ))
                 };
 
-                println!("jar path: {:?}", &jar_path);
                 if file_name.ends_with("-sources.jar") {
                     possible_sources_jars.push(jar_path)
                 } else if file_name.ends_with(".jar") {
@@ -476,8 +475,14 @@ async fn main() -> Result<(), anyhow::Error> {
                 &*loader_file_string
             )?;
 
-            println!("Mod Version: {}", parsed_loader_file["version"]);
-            println!("Mod ID: {}", parsed_loader_file["id"]);
+            // println!("Mod Version: {}", parsed_loader_file["version"]);
+            // println!("Mod ID: {}", parsed_loader_file["id"]);
+
+            for dependency in config_file.modrinth.dependencies {
+                println!("Project ID: {:?}", &dependency.project_id);
+                println!("Version ID: {:?}", &dependency.version_id);
+                println!("Dependency Type: {:?}", &dependency.dependency_type)
+            }
 
             clean_up(&tmp_info.dir_path)?
 
