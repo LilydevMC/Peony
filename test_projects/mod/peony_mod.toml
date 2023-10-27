@@ -1,6 +1,8 @@
 config_format_version = 1
 version_name_format = "[%mc_version%] %project_name% v%project_version% - %loader%"
 loaders = ["fabric", "quilt"]
+mc_versions = [""]
+mc_version_alias = "1.20.x"
 
 
 [modrinth]

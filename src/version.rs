@@ -7,7 +7,7 @@ use crate::models::modrinth::Loader::*;
 use crate::models::util::OutputFileInfo;
 use crate::models::version::VersionInfo;
 
-pub fn get_version_info(
+pub fn get_modpack_version_info(
     config_file: &ModpackConfig,
     pack_file: &PackFile,
     output_info: &OutputFileInfo

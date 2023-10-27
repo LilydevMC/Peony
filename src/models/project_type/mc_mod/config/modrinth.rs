@@ -2,7 +2,7 @@ use serde::{Serialize, Deserialize};
 use crate::models::modrinth::DependencyType;
 
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ModrinthConfig {
     pub project_id: String,
     pub staging: Option<bool>,
@@ -10,7 +10,7 @@ pub struct ModrinthConfig {
     pub dependencies: Vec<ModrinthDependency>
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ModrinthDependency {
     pub version_id: Option<String>,
     pub project_id: Option<String>,

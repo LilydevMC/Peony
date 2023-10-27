@@ -56,21 +56,21 @@ impl Loader {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct DonationObject {
     pub id: String,
     pub platform: String,
     pub url: String
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct LicenseObject {
     pub id: String,
     pub name: String,
     pub url: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct GalleryObject {
     pub url: String,
     pub featured: bool,
@@ -80,7 +80,7 @@ pub struct GalleryObject {
     pub ordering: i32
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "lowercase")]
 pub enum DependencyType {
     REQUIRED,

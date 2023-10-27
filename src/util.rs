@@ -70,3 +70,27 @@ pub fn file_exists_in_zip(archive: &mut zip::ZipArchive<File>, file_name: &str) 
         false
     }
 }
+
+pub fn file_name_from_path(path: &PathBuf) -> Result<String, anyhow::Error> {
+    match path.clone().file_name() {
+        Some(os_name) => match os_name.to_str() {
+            Some(name) => Ok(name.to_string()),
+            None => return Err(anyhow!("Failed to parse file name from OsString to &str"))
+        },
+        None => return Err(anyhow!("Failed to get file name from path: {:?}", path))
+    }
+}
+
+pub fn trim_quotes(string: String) -> String {
+    string.trim_matches(&['\"'] as &[_]).to_string()
+}
+
+pub fn read_file(path: &PathBuf) -> Result<Vec<u8>, anyhow::Error> {
+    match fs::read(path) {
+        Ok(file) => Ok(file),
+        Err(err) => Err(anyhow!(
+            "Failed to read file: {}", err
+        ))
+    }
+}
+

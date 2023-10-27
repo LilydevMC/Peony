@@ -1,6 +1,5 @@
 use std::{env, fs};
 use std::io::Read;
-use std::ops::Deref;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use anyhow::anyhow;
@@ -11,7 +10,7 @@ use serenity::model::channel::Embed;
 use serenity::model::webhook::Webhook;
 
 use crate::{
-    github::*,
+    github::generate_changelog,
     models::{
         project_type::{
             modpack::config::ModpackConfig,
@@ -22,13 +21,12 @@ use crate::{
             ModrinthUrl
         }
     },
-    modrinth::{
-        create_modrinth_release
-    },
     pack::*,
     util::*,
     version::*
 };
+use crate::models::project_type::mc_mod::{Jar, ModInfo, ModJars};
+use crate::models::project_type::mc_mod::version::{ModVersionInfo};
 
 mod github;
 mod mc_mod;
@@ -153,7 +151,7 @@ async fn main() -> Result<(), anyhow::Error> {
                 Err(err) => return Err(err)
             };
 
-            let version_info = match get_version_info(
+            let version_info = match get_modpack_version_info(
                 &config_file,
                 &pack_file,
                 &output_file_info
@@ -166,7 +164,7 @@ async fn main() -> Result<(), anyhow::Error> {
             // Changelog
 
             let changelog_markdown = match generate_changelog(
-                &config_file
+                &config_file.github
             ).await {
                 Ok(changelog) => changelog,
                 Err(err) => return Err(err)
@@ -174,7 +172,7 @@ async fn main() -> Result<(), anyhow::Error> {
 
             // GitHub Release
 
-            match create_github_release(
+            match github::create_modpack_release(
                 &config_file,
                 &pack_file,
                 &output_file_info,
@@ -199,7 +197,7 @@ async fn main() -> Result<(), anyhow::Error> {
                 &config_file.modrinth
                 );
 
-            match create_modrinth_release(
+            match modrinth::create_modpack_release(
                 &config_file,
                 &pack_file,
                 &output_file_info,
@@ -344,6 +342,7 @@ async fn main() -> Result<(), anyhow::Error> {
                 ))
             };
 
+
             let tmp_info = match create_temp() {
                 Ok(info) => {
                     info
@@ -475,14 +474,62 @@ async fn main() -> Result<(), anyhow::Error> {
                 &*loader_file_string
             )?;
 
-            // println!("Mod Version: {}", parsed_loader_file["version"]);
-            // println!("Mod ID: {}", parsed_loader_file["id"]);
+            let mod_info = ModInfo {
+                name: trim_quotes(parsed_loader_file["name"].to_string()),
+                id: trim_quotes(parsed_loader_file["id"].to_string()),
+                version: trim_quotes(parsed_loader_file["version"].to_string())
+            };
 
-            for dependency in config_file.modrinth.dependencies {
-                println!("Project ID: {:?}", &dependency.project_id);
-                println!("Version ID: {:?}", &dependency.version_id);
-                println!("Dependency Type: {:?}", &dependency.dependency_type)
-            }
+            let mod_jar_name = file_name_from_path(jar_path)?;
+
+            let sources_jar_name = match sources_jar_path {
+                Some(path) => Some(file_name_from_path(path)?),
+                None => None
+            };
+
+            let mod_jar = Jar {
+                file_name: mod_jar_name,
+                file_path: jar_path.into()
+            };
+
+            let sources_jar = match sources_jar_name {
+                Some(name) => Some(
+                    Jar {
+                        file_name: name,
+                        file_path: sources_jar_path.unwrap().into()
+                    }
+                ),
+                None => None
+            };
+
+            let mod_jars = ModJars {
+                mod_jar,
+                sources_jar
+            };
+
+
+            let version_info = ModVersionInfo::new(
+                &config_file, &mod_jars, &mod_info
+            )?;
+
+
+            // Generate changelog from previous GitHub Releases
+            let changelog_markdown = match generate_changelog(
+                &config_file.github
+            ).await {
+                Ok(changelog) => changelog,
+                Err(err) => return Err(err)
+            };
+
+
+            // Create GitHub Release
+            let create_release = match github::create_mod_release(
+                &config_file, &mod_info, &mod_jars,
+                &changelog_markdown, &version_info.name
+            ).await {
+                Ok(release) => release,
+                Err(err) => return Err(err)
+            };
 
             clean_up(&tmp_info.dir_path)?
 

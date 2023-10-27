@@ -49,14 +49,14 @@ pub fn get_output_file(tmp_dir_info: &TempInfo) -> Result<OutputFileInfo, anyhow
         match Path::new(&tmp_dir_info.dir_path).join("*.mrpack").to_str() {
             Some(path) => path,
             None => return Err(anyhow!(
-                        "Failed to parse modpack glob to string."
-                    ))
+                "Failed to parse modpack glob to string."
+            ))
         }
     ) {
         Ok(paths) => paths,
         Err(err) => return Err(anyhow!(
-                    "Failed to get paths with glob pattern: {}", err
-                ))
+            "Failed to get paths with glob pattern: {}", err
+        ))
     };
 
     let mut mrpack_path_res = None;
