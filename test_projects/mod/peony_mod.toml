@@ -1,23 +1,21 @@
 config_format_version = 1
 version_name_format = "[%mc_version%] %project_name% v%project_version% - %loader%"
 loaders = ["fabric", "quilt"]
-mc_versions = [""]
+mc_versions = ["1.20.1", "1.20", "1.19"]
 mc_version_alias = "1.20.x"
 
 
 [modrinth]
-project_id = "2jZzXrpV"
+project_id = "sqZDDekS"
 staging = true
 
 [[modrinth.dependency]]
-version_id = "aegpoin"
-project_id = "2jZzXrpV"
-dependency_type = "optional"
+version_id = "CAtAJEqF"
+dependency_type = "required"
 
 [[modrinth.dependency]]
-version_id = "aegpoin"
-project_id = "2jZzXrpV"
-dependency_type = "required"
+project_id = "nP1fufoB"
+dependency_type = "optional"
 
 
 [github]
