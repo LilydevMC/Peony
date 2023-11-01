@@ -194,7 +194,7 @@ async fn main() -> Result<(), anyhow::Error> {
             };
 
             let modrinth_url = ModrinthUrl::new(
-                &config_file.modrinth
+                &config_file.modrinth.staging
                 );
 
             match modrinth::create_modpack_release(
@@ -523,11 +523,27 @@ async fn main() -> Result<(), anyhow::Error> {
 
 
             // Create GitHub Release
-            let create_release = match github::create_mod_release(
+            let create_github_release = match github::create_mod_release(
                 &config_file, &mod_info, &mod_jars,
                 &changelog_markdown, &version_info.name
             ).await {
-                Ok(release) => release,
+                Ok(_) => {},
+                Err(err) => return Err(err),
+            };
+
+
+            // Create Modrinth Release
+
+            let modrinth_url = ModrinthUrl::new(
+                &config_file.modrinth.staging
+            );
+
+            let create_modrinth_version = match modrinth::create_mod_release(
+                &config_file, &version_info,
+                &changelog_markdown, &modrinth_url,
+                &version_info.name
+            ).await {
+                Ok(_) => {},
                 Err(err) => return Err(err)
             };
 

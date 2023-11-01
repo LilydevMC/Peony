@@ -1,5 +1,4 @@
 use serde::{Serialize, Deserialize};
-use crate::models::ModrinthConfig;
 
 pub mod project;
 pub mod version;
@@ -10,8 +9,8 @@ pub struct ModrinthUrl {
 }
 
 impl ModrinthUrl {
-    pub fn new(modrinth_config: &ModrinthConfig) -> Self {
-        let knossos_url = match modrinth_config.staging {
+    pub fn new(is_staging_conf: &Option<bool>) -> Self {
+        let knossos_url = match is_staging_conf {
             Some(is_staging) => match is_staging {
                 true => "https://staging.modrinth.com",
                 false => "https://modrinth.com"
@@ -19,7 +18,7 @@ impl ModrinthUrl {
             None => "https://modrinth.com"
         };
 
-        let labrinth_url = match modrinth_config.staging {
+        let labrinth_url = match is_staging_conf {
             Some(is_staging) => match is_staging {
                 true => "https://staging-api.modrinth.com/v2",
                 false => "https://api.modrinth.com/v2"

@@ -1,6 +1,6 @@
+use std::env;
 use anyhow::anyhow;
 use reqwest::multipart::{Form, Part};
-use serde::{Serialize, Deserialize};
 use crate::models::{
     modrinth::{
         ModrinthUrl,
@@ -20,16 +20,32 @@ use crate::models::{
 use crate::models::project_type::mc_mod::config::ModConfig;
 use crate::models::project_type::mc_mod::version::ModVersionInfo;
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct FileParts {
-    pub mod_file: JarPart,
-    pub sources_file: Option<JarPart>
+#[derive(Debug)]
+pub struct VersionForm {
+    pub form: Form,
+    pub part_names: Vec<String>
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug)]
 pub struct JarPart {
     pub file_name: String,
-    pub file_part: Part
+    pub file_part: Part,
+    pub file_type: FileType
+}
+
+#[derive(Debug, Copy, Clone)]
+pub enum FileType {
+    MOD,
+    SOURCES
+}
+
+impl FileType {
+    pub fn part_name(&self) -> String {
+        match self {
+            Self::MOD => "mod_jar-y5fpv7cUQ6W!sL",
+            Self::SOURCES => "sources_jar-y5fpv7cUQ6W!sL"
+        }.to_string()
+    }
 }
 
 
@@ -99,43 +115,52 @@ pub async fn create_mod_release(
     config: &ModConfig,
     mod_files: &ModVersionInfo,
     changelog: &String,
-    modrinth_token: String,
     modrinth_url: &ModrinthUrl,
     version_name: &String
 ) -> Result<(), anyhow::Error> {
     let modrinth_config = config.modrinth.clone();
+    let modrinth_token = match env::var("MODRINTH_TOKEN") {
+        Ok(token) => token,
+        Err(err) => return Err(anyhow!(
+            "Failed to get Modrinth token from environment: {}", err
+        ))
+    };
+
 
     println!("Uploading to Modrinth...");
 
-    let modrinth_req = VersionRequest {
+    let mut file_part_names = vec![FileType::MOD.part_name()];
+
+    if let Some(_) = &mod_files.sources_file {
+        file_part_names.push(FileType::SOURCES.part_name())
+    }
+
+    let form_data = VersionRequest {
         name: version_name.into(),
-        version_number: pack_file.version.clone(),
+        version_number: mod_files.version.to_owned(),
         changelog: Some(changelog.to_string()),
-        dependencies: vec![],
-        game_versions: vec![pack_file.versions.minecraft.clone()],
+        dependencies: vec![], // TODO: actually parse these
+        game_versions: config.mc_versions.to_owned(),
         version_type: VersionType::RELEASE,
-        loaders: vec![version_info.loader.clone()],
+        loaders: config.loaders.to_owned(),
         featured: false,
         requested_status: VersionStatus::LISTED,
         project_id: modrinth_config.project_id,
-        file_parts: vec!["file".to_string()],
-        primary_file: output_file_info.file_name.clone(),
+        file_parts: file_part_names,
+        primary_file: mod_files.mod_file.name.to_owned(),
     };
 
-    let file_part = match reqwest::multipart::Part::bytes(
-        version_info.file_contents.clone()
-    )
-        .file_name(output_file_info.file_name.clone())
-        .mime_str("application/zip") {
-        Ok(part) => part,
+    println!("\nform data: \n{}\n", serde_json::to_string_pretty(&form_data).unwrap());
+
+    let form = match create_mod_form(
+        &mod_files,
+        &form_data
+    ).await {
+        Ok(form) => form,
         Err(err) => return Err(anyhow!(
-                    "Failed to get part from .mrpack file: {}", err
-                ))
+            "Failed to create mod form: {}", err
+        ))
     };
-
-    let form = reqwest::multipart::Form::new()
-        .text("data", serde_json::to_string(&modrinth_req).unwrap())
-        .part("file", file_part);
 
     let req = match reqwest::Client::new()
         .post(format!("{}/version", modrinth_url.labrinth))
@@ -143,7 +168,7 @@ pub async fn create_mod_release(
         .multipart(form)
         .send().await {
         Ok(res) => res,
-        Err(err) => return Err(anyhow!("Error uploading version: {}", err))
+        Err(err) => return Err(anyhow!("Error uploading mod version: {}", err))
     };
 
     return if req.status().is_success() {
@@ -156,59 +181,61 @@ pub async fn create_mod_release(
     }
 }
 
-pub async fn get_mod_file_parts(
-    mod_files: &ModVersionInfo
-) -> Result<FileParts, anyhow::Error> {
+pub async fn create_mod_form(
+    mod_files: &ModVersionInfo,
+    request_data: &VersionRequest
+) -> Result<Form, anyhow::Error> {
+
+    let mut file_names: Vec<String> = vec![mod_files.mod_file.clone().name];
+
     let mod_part = JarPart {
         file_name: mod_files.mod_file.name.clone(),
-        file_part: Part::bytes(&mod_files.mod_file.contents)
-            .file_name(&mod_files.mod_file.name)
-            .mime_str("application/java-archive")?
+        file_part: Part::bytes(mod_files.mod_file.contents.clone())
+            .file_name(mod_files.mod_file.clone().name)
+            .mime_str("application/java-archive")?,
+        file_type: FileType::MOD
     };
 
     let sources_part = match &mod_files.sources_file {
         Some(file) => {
-            let part = Part::bytes(&file.contents)
-                .file_name(&file.name)
+            file_names.push(file.name.to_owned());
+
+            let part = Part::bytes(file.contents.clone())
+                .file_name(file.name.clone())
                 .mime_str("application/java-archive")?;
 
             Some(
                 JarPart {
-                    file_name: file.name.into(),
-                    file_part: part
-                }
+                    file_name: file.name.clone(),
+                    file_part: part,
+                    file_type: FileType::SOURCES
+                },
             )
         },
         None => None
     };
 
-    Ok(FileParts {
-        mod_file: mod_part,
-        sources_file: sources_part
-    })
-}
+    let mut file_parts = vec![mod_part];
 
-pub async fn create_mod_form(
-    mod_parts: &FileParts,
-    form_data: &String
-) -> Result<Form, anyhow::Error> {
-
-    match &mod_parts.sources_file {
-        Some(sources_part) => {
-            Ok(
-                Form::new()
-                    .text("data", form_data)
-                    .part("mod_jar", mod_parts.mod_file.file_part.into())
-                    .part("sources_jar", sources_part.file_part.into())
-            )
-        },
-        None => {
-            Ok(
-                Form::new()
-                    .text("data", form_data)
-                    .part("mod_jar", mod_parts.mod_file.file_part.into())
-            )
-        }
+    if let Some(sources_part_val) = sources_part {
+        file_parts.push(sources_part_val);
     }
+
+
+    let form_data = serde_json::to_string(request_data)
+        .map_err(|err| anyhow!("Failed to serialize version request body: {}", err))?;
+
+    let mut form = Form::new().text("data", form_data);
+
+    for part in file_parts {
+        form = form.part(
+            part.file_type.part_name(),
+            part.file_part
+        );
+    }
+
+    println!("\nform thingy: {:?}\n", form);
+
+    Ok(form)
 
 }
