@@ -15,6 +15,7 @@ pub struct ModConfig {
     pub loaders: Vec<Loader>,
     pub mc_versions: Vec<String>,
     pub mc_version_alias: String,
+    pub version_alias: Option<String>,
     pub github: GithubConfig,
     pub modrinth: ModrinthConfig,
     pub discord: Option<DiscordConfig>

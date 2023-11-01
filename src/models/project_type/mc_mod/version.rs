@@ -62,9 +62,14 @@ impl ModVersionInfo {
             l.formatted()
         }).collect::<Vec<String>>().join("/");
 
+        let project_version = match &config.version_alias {
+            Some(alias) => alias,
+            None => &mod_info.version
+        };
+
         let version_name = config.version_name_format
             .replace("%project_name%", &mod_info.name)
-            .replace("%project_version%", &mod_info.version)
+            .replace("%project_version%", project_version)
             .replace("%mc_version%", &config.mc_version_alias)
             .replace("%loader%", &loaders_formatted);
 

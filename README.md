@@ -1,10 +1,15 @@
 # Peony
 
-**NOTE: This code is very, _very_ messy right now. There are likely lots of bugs! I am fully aware of this,
-I'm just doing my best to get it working as fast as possible so I can use it in my modpacks**
+> **NOTE:**  
+> This code is very, _very_ messy right now. There are likely lots of bugs! I am fully aware of this,
+> I'm just doing my best to get it working as fast as possible, so I can use it in my projects.
 
-Builds from a packwiz project and distributes it to Modrinth and/or GitHub Releases,
-but will support other project types in the future.
+Peony can build Minecraft mods and modpacks, release them on both GitHub releases and Modrinth,
+and optionally, send a discord webhook after release.
+
+## Todo
+You can find a very limited todo list [here](/TODO.md).
+This may be moved to GitHub issues in the future, but I find regular Markdown files easier to work with.
 
 ## License
 

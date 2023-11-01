@@ -509,8 +509,6 @@ async fn main() -> Result<(), anyhow::Error> {
             };
 
 
-
-
             let version_info = ModVersionInfo::new(
                 &config_file, &mod_jars, &mod_info
             )?;
