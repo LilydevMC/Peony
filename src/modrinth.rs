@@ -147,10 +147,8 @@ pub async fn create_mod_release(
         requested_status: VersionStatus::LISTED,
         project_id: modrinth_config.project_id,
         file_parts: file_part_names,
-        primary_file: mod_files.mod_file.name.to_owned(),
+        primary_file: FileType::MOD.part_name(),
     };
-
-    println!("\nform data: \n{}\n", serde_json::to_string_pretty(&form_data).unwrap());
 
     let form = match create_mod_form(
         &mod_files,
@@ -233,8 +231,6 @@ pub async fn create_mod_form(
             part.file_part
         );
     }
-
-    println!("\nform thingy: {:?}\n", form);
 
     Ok(form)
 

@@ -1,5 +1,6 @@
 use std::{env, fs};
 use std::io::Read;
+use std::ops::Add;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use anyhow::anyhow;
@@ -508,6 +509,8 @@ async fn main() -> Result<(), anyhow::Error> {
             };
 
 
+
+
             let version_info = ModVersionInfo::new(
                 &config_file, &mod_jars, &mod_info
             )?;
@@ -523,6 +526,7 @@ async fn main() -> Result<(), anyhow::Error> {
 
 
             // Create GitHub Release
+
             let create_github_release = match github::create_mod_release(
                 &config_file, &mod_info, &mod_jars,
                 &changelog_markdown, &version_info.name

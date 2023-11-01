@@ -49,7 +49,7 @@ impl ModVersionInfo {
         let sources_jar_info = match sources_jar_contents {
             Some(contents) => Some(
                 ModFile {
-                    name: mod_jars.mod_jar.file_name.clone(),
+                    name: mod_jars.sources_jar.clone().unwrap().file_name,
                     contents
                 }
             ),

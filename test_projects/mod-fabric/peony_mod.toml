@@ -6,8 +6,8 @@ mc_version_alias = "1.20.x"
 
 
 [modrinth]
-project_id = "sqZDDekS"
-staging = true
+project_id = "MaJsLWB4"
+staging = false
 
 [[modrinth.dependency]]
 version_id = "CAtAJEqF"
