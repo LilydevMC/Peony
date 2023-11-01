@@ -17,6 +17,7 @@ use crate::models::{
     util::OutputFileInfo,
     version::VersionInfo
 };
+use crate::models::modrinth::version::VersionDependency;
 use crate::models::project_type::mc_mod::config::ModConfig;
 use crate::models::project_type::mc_mod::version::ModVersionInfo;
 
@@ -135,11 +136,19 @@ pub async fn create_mod_release(
         file_part_names.push(FileType::SOURCES.part_name())
     }
 
+    let mut dependencies: Vec<VersionDependency> = vec![];
+
+    if modrinth_config.dependencies.is_some() {
+        for dep in modrinth_config.dependencies.unwrap() {
+            dependencies.push(VersionDependency::from(dep))
+        }
+    }
+
     let form_data = VersionRequest {
         name: version_name.into(),
         version_number: mod_files.version.to_owned(),
         changelog: Some(changelog.to_string()),
-        dependencies: vec![], // TODO: actually parse these
+        dependencies,
         game_versions: config.mc_versions.to_owned(),
         version_type: VersionType::RELEASE,
         loaders: config.loaders.to_owned(),

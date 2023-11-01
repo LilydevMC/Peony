@@ -10,12 +10,12 @@ project_id = "MaJsLWB4"
 staging = false
 
 [[modrinth.dependency]]
-version_id = "CAtAJEqF"
-dependency_type = "required"
+version_id = "4OZL6q9h"
+dependency_type = "optional"
 
 [[modrinth.dependency]]
-project_id = "nP1fufoB"
-dependency_type = "optional"
+project_id = "P7dR8mSH"
+dependency_type = "required"
 
 
 [github]

@@ -1,7 +1,10 @@
 use serde::{Serialize, Deserialize};
-use crate::models::modrinth::{
-    DependencyType,
-    Loader
+use crate::models::{
+    modrinth::{
+        DependencyType,
+        Loader
+    },
+    project_type::mc_mod::config::modrinth::ModrinthDependency
 };
 
 // Based on the `Create Version` schema here:
@@ -50,4 +53,16 @@ pub enum VersionStatus {
     DRAFT,
     #[serde(rename = "unlisted")]
     UNLISTED
+}
+
+
+impl From<ModrinthDependency> for VersionDependency {
+    fn from(dep: ModrinthDependency) -> Self {
+        Self {
+            version_id: dep.version_id,
+            project_id: dep.project_id,
+            file_name: None,
+            dependency_type: dep.dependency_type
+        }
+    }
 }

@@ -6,7 +6,7 @@ use crate::models::{
     project_type::mc_mod::config::modrinth::ModrinthConfig
 };
 
-mod modrinth;
+pub mod modrinth;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ModConfig {
