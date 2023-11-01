@@ -7,6 +7,8 @@
 Peony can build Minecraft mods and modpacks, release them to both GitHub Releases and Modrinth,
 and optionally, send a Discord webhook after release.
 
+**Note that only Fabric and Quilt mods are supported for now!**
+
 ## Todo
 You can find a very limited todo list [here](/TODO.md).
 This may be moved to GitHub issues in the future, but I find regular Markdown files easier to work with.
