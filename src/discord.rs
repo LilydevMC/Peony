@@ -64,9 +64,12 @@ pub async fn send_discord_webhook(
 
     let embed_color = match discord_config.embed_color {
         Some(color) => color as i32,
-        None => match modrinth_project.color {
+        None => match discord_config.embed_color {
             Some(color) => color,
-            None => 0x1e1f22
+            None => match modrinth_project.color {
+                Some(color) => color,
+                None => 0x232634
+            }
         }
     };
 
