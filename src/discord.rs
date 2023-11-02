@@ -75,11 +75,18 @@ pub async fn send_discord_webhook(
 
     let release_time = Utc::now().format("%b, %d %Y %r");
 
-    let embed = Embed::fake(|e| {
+    let embed = Embed::fake(|mut e| {
+        if let Some(url) = &discord_config.embed_image_url {
+            e = e.image(url)
+        }
+
+        if let Some(url) = &discord_config.thumbnail_image_url {
+            e = e.thumbnail(url)
+        }
+
         e.title(format!("{} {}", discord_config.title_emoji, version_name))
             .color(embed_color)
             .description(description)
-            .image(&discord_config.embed_image_url)
             .footer(|f| {
                 f.text(format!(
                     "{} | {} UTC",

@@ -27,6 +27,7 @@ pub struct DiscordConfig {
     pub modrinth_emoji_id: String,
     pub discord_ping_role: String,
     pub title_emoji: String,
-    pub embed_image_url: String,
+    pub embed_image_url: Option<String>,
+    pub thumbnail_image_url: Option<String>,
     pub embed_color: Option<u32>
 }

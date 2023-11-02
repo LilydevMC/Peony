@@ -3,7 +3,7 @@ version_name_format = "[%mc_version%] %project_name% v%project_version% - %loade
 loaders = ["fabric", "quilt"]
 mc_versions = ["1.20.1", "1.20", "1.19"]
 mc_version_alias = "1.20.x"
-version_alias = "1.0.11"
+version_alias = "1.0.14"
 
 
 [modrinth]
@@ -29,5 +29,6 @@ github_emoji_id = "<:github_light:1000525612911444118>"
 modrinth_emoji_id = "<:modrinth:1000522854766497813>"
 discord_ping_role = "(ping role so i don't annoy my friends too much)"
 title_emoji = "💖"
-embed_image_url = "https://raw.githubusercontent.com/LilydevMC/CozyCreations/main/assets/project_banner.png?token=GHSAT0AAAAAACGZZ7WQK4C6IRGVDZ6SUSHWZJPCB5A"
-embed_color = 0xfff
+#embed_image_url = "https://raw.githubusercontent.com/LilydevMC/CozyCreations/main/assets/project_banner.png"
+thumbnail_image_url = "https://raw.githubusercontent.com/LilydevMC/assets/main/volubind/assets/icon.png"
+embed_color = 0xffffff
