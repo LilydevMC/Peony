@@ -1,6 +1,6 @@
 [package]
 name = "peony"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Jade Nash <jade@lilydev.com>"]
 description = "Builds a Minecraft project and distributes it to Modrinth and/or GitHub Releases."
 keywords = ["minecraft", "utility", "modrinth", "modpack", "mod"]
