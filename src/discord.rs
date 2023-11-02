@@ -63,15 +63,15 @@ pub async fn send_discord_webhook(
     );
 
     let embed_color = match discord_config.embed_color {
-        Some(color) => color as i32,
+        Some(color) => color,
         None => match discord_config.embed_color {
             Some(color) => color,
             None => match modrinth_project.color {
-                Some(color) => color,
+                Some(color) => color as u32,
                 None => 0x232634
             }
         }
-    };
+    } as i32;
 
     let release_time = Utc::now().format("%b, %d %Y %r");
 
