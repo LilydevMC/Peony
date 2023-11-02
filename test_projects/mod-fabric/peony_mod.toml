@@ -3,7 +3,7 @@ version_name_format = "[%mc_version%] %project_name% v%project_version% - %loade
 loaders = ["fabric", "quilt"]
 mc_versions = ["1.20.1", "1.20", "1.19"]
 mc_version_alias = "1.20.x"
-version_alias = "1.0.14"
+version_alias = "1.0.15"
 
 
 [modrinth]

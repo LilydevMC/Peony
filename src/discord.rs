@@ -50,7 +50,7 @@ pub async fn send_discord_webhook(
     let description = format!("\
         **New release!**\n\n\
         {} [GitHub](https://github.com/{}/{}/releases/latest)\n\
-        {} [Modrinth]({}/modpack/{})\n\n\
+        {} [Modrinth]({}/project/{})\n\n\
         {}
         ",
             discord_config.github_emoji_id,
