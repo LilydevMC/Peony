@@ -4,11 +4,8 @@ use std::ops::Add;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use anyhow::anyhow;
-use chrono::Utc;
 use clap::{Parser, Subcommand, command};
 use glob::glob;
-use serenity::model::channel::Embed;
-use serenity::model::webhook::Webhook;
 
 use crate::{
     github::generate_changelog,
@@ -18,7 +15,6 @@ use crate::{
             mc_mod::config::ModConfig
         },
         modrinth::{
-            project::ProjectResponse,
             ModrinthUrl
         }
     },
@@ -26,9 +22,11 @@ use crate::{
     util::*,
     version::*
 };
+use crate::discord::send_discord_webhook;
 use crate::models::project_type::mc_mod::{Jar, ModInfo, ModJars};
 use crate::models::project_type::mc_mod::version::{ModVersionInfo};
 
+mod discord;
 mod github;
 mod mc_mod;
 mod models;
@@ -221,87 +219,20 @@ async fn main() -> Result<(), anyhow::Error> {
                     ))
                 };
 
-                let modrinth_project = match reqwest::Client::new()
-                    .get(format!(
-                        "{}/project/{}",
-                        modrinth_url.labrinth,
-                        config_file.modrinth.project_id
-                    ))
-                    .header("Authorization", modrinth_token)
-                    .send().await {
-                        Ok(res) => {
-                            match res.json::<ProjectResponse>().await {
-                                Ok(json) => json,
-                                Err(err) => return Err(anyhow!(
-                                    "Error parsing response from get project: {}\n\
-                                    Make sure this project is not a draft!",
-                                    err.to_string()
-                                ))
-                            }
-                        },
-                        Err(err) => return Err(anyhow!(
-                            "Error getting project from project id: {}",
-                            err
-                        ))
-                };
-
-                let description = format!("\
-                **New release!**\n\n\
-                {} [GitHub](https://github.com/{}/{}/releases/latest)\n\
-                {} [Modrinth]({}/modpack/{})\n\n\
-                {}
-                ",
-                    discord_config.github_emoji_id,
-                    config_file.github.repo_owner,
-                    config_file.github.repo_name,
-                    discord_config.modrinth_emoji_id,
-                    modrinth_url.knossos,
-                    modrinth_project.slug,
-                    changelog_markdown
-                );
-
-                let embed_color = match discord_config.embed_color {
-                    Some(color) => color as i32,
-                    None => match modrinth_project.color {
-                        Some(color) => color,
-                        None => 0x1e1f22
-                    }
-                };
-
-                let release_time = Utc::now().format("%b, %d %Y %r");
-
-                let embed = Embed::fake(|e| {
-                    e.title(format!("{} {}", discord_config.title_emoji, version_info.version_name))
-                        .color(embed_color)
-                        .description(description)
-                        .image(discord_config.embed_image_url)
-                        .footer(|f| {
-                            f.text(format!(
-                                "{} | {} UTC",
-                                modrinth_project.project_type.formatted(),
-                                release_time
-                            ))
-                        })
-                });
-
-                let http = serenity::http::Http::new("token");
-                let url = match env::var("WEBHOOK_URL") {
-                    Ok(url) => url,
-                    Err(err) => return Err(anyhow!(
-                        "Failed to get webhook url: {}", err
-                    ))
-                };
-
-                let webhook = Webhook::from_url(&http, &*url).await?;
-
-                webhook.execute(&http, true, |w| {
-                    w
-                        .content(discord_config.discord_ping_role)
-                        .embeds(vec![embed])
-                }).await?;
-
+                match send_discord_webhook(
+                    &discord_config,
+                    &modrinth_url,
+                    &config_file.modrinth.project_id,
+                    &config_file.github,
+                    &version_info.version_name,
+                    &changelog_markdown
+                ).await {
+                    Ok(_) => {
+                        println!("Sent Discord webhook!")
+                    },
+                    Err(err) => return Err(err)
+                }
             }
-
 
             clean_up(&tmp_info.dir_path)?
         },
@@ -525,7 +456,7 @@ async fn main() -> Result<(), anyhow::Error> {
 
             // Create GitHub Release
 
-            let create_github_release = match github::create_mod_release(
+            match github::create_mod_release(
                 &config_file, &mod_info, &mod_jars,
                 &changelog_markdown, &version_info.name
             ).await {
@@ -540,7 +471,7 @@ async fn main() -> Result<(), anyhow::Error> {
                 &config_file.modrinth.staging
             );
 
-            let create_modrinth_version = match modrinth::create_mod_release(
+            match modrinth::create_mod_release(
                 &config_file, &version_info,
                 &changelog_markdown, &modrinth_url,
                 &version_info.name
@@ -549,8 +480,30 @@ async fn main() -> Result<(), anyhow::Error> {
                 Err(err) => return Err(err)
             };
 
-            clean_up(&tmp_info.dir_path)?
+            if discord {
+                let discord_config = match config_file.discord {
+                    Some(config) => config,
+                    None => return Err(anyhow!(
+                        "Failed to get Discord config"
+                    ))
+                };
 
+                match send_discord_webhook(
+                    &discord_config,
+                    &modrinth_url,
+                    &config_file.modrinth.project_id,
+                    &config_file.github,
+                    &version_info.name,
+                    &changelog_markdown
+                ).await {
+                    Ok(_) => {
+                        println!("Sent Discord webhook!")
+                    },
+                    Err(err) => return Err(err)
+                }
+            }
+
+            clean_up(&tmp_info.dir_path)?
         }
     }
     Ok(())
