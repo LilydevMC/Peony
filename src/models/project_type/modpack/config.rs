@@ -1,5 +1,5 @@
-use serde::{Serialize, Deserialize};
 use crate::models::{DiscordConfig, GithubConfig, ModrinthConfig};
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ModpackConfig {
@@ -7,5 +7,5 @@ pub struct ModpackConfig {
     pub version_name_format: String,
     pub github: GithubConfig,
     pub modrinth: ModrinthConfig,
-    pub discord: Option<DiscordConfig>
+    pub discord: Option<DiscordConfig>,
 }

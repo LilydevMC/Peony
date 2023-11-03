@@ -1,10 +1,10 @@
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CreateReleaseRequest {
     pub tag_name: String,
     pub name: Option<String>,
-    pub body: Option<String>
+    pub body: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -31,7 +31,7 @@ pub struct ReleaseResponse {
     pub body_text: Option<String>,
     pub mentions_count: Option<i32>,
     pub discussion_url: Option<String>,
-    pub reactions: Option<GithubReactions>
+    pub reactions: Option<GithubReactions>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -57,7 +57,7 @@ pub struct GithubAuthor {
     #[serde(rename = "type")]
     pub type_string: String,
     pub site_admin: bool,
-    pub starred_at: Option<String>
+    pub starred_at: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -74,7 +74,7 @@ pub struct GithubAsset {
     pub download_count: i32,
     pub created_at: String,
     pub updated_at: String,
-    pub uploader: Option<GithubAuthor>
+    pub uploader: Option<GithubAuthor>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -90,6 +90,5 @@ pub struct GithubReactions {
     pub heart: i32,
     pub hooray: i32,
     pub eyes: i32,
-    pub rocket: i32
+    pub rocket: i32,
 }
-

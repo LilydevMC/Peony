@@ -9,7 +9,7 @@ pub mod version;
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct GithubConfig {
     pub repo_owner: String,
-    pub repo_name: String
+    pub repo_name: String,
 }
 
 // Eventually should be moved to models::project_type::modpack::config
@@ -29,5 +29,5 @@ pub struct DiscordConfig {
     pub title_emoji: String,
     pub embed_image_url: Option<String>,
     pub thumbnail_image_url: Option<String>,
-    pub embed_color: Option<u32>
+    pub embed_color: Option<u32>,
 }

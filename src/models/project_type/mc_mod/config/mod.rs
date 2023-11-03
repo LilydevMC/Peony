@@ -1,10 +1,8 @@
-use serde::{Serialize, Deserialize};
 use crate::models::{
-    DiscordConfig,
+    modrinth::Loader, project_type::mc_mod::config::modrinth::ModrinthConfig, DiscordConfig,
     GithubConfig,
-    modrinth::Loader,
-    project_type::mc_mod::config::modrinth::ModrinthConfig
 };
+use serde::{Deserialize, Serialize};
 
 pub mod modrinth;
 
@@ -18,6 +16,5 @@ pub struct ModConfig {
     pub version_alias: Option<String>,
     pub github: GithubConfig,
     pub modrinth: ModrinthConfig,
-    pub discord: Option<DiscordConfig>
+    pub discord: Option<DiscordConfig>,
 }
-

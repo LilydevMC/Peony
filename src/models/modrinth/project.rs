@@ -1,6 +1,5 @@
-use serde::{Serialize, Deserialize};
 use crate::models::modrinth::{DonationObject, GalleryObject, LicenseObject};
-
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
@@ -10,7 +9,7 @@ pub enum ProjectType {
     DATAPACK,
     SHADER,
     RESOURCEPACK,
-    MODPACK
+    MODPACK,
 }
 
 impl ProjectType {
@@ -21,11 +20,11 @@ impl ProjectType {
             Self::DATAPACK => "Data Pack",
             Self::SHADER => "Shader",
             Self::RESOURCEPACK => "Resource Pack",
-            Self::MODPACK => "Modpack"
-        }.to_string()
+            Self::MODPACK => "Modpack",
+        }
+        .to_string()
     }
 }
-
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ProjectResponse {
@@ -65,5 +64,5 @@ pub struct ProjectResponse {
     pub versions: Vec<String>,
     pub game_versions: Vec<String>,
     pub loaders: Vec<String>,
-    pub gallery: Vec<GalleryObject>
+    pub gallery: Vec<GalleryObject>,
 }

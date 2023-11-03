@@ -1,4 +1,4 @@
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 pub mod config;
 
@@ -14,7 +14,7 @@ pub struct PackFile {
     pub pack_format: String,
     pub index: PackFileIndex,
     pub versions: PackFileVersions,
-    pub options: Option<PackFileOptions>
+    pub options: Option<PackFileOptions>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -22,7 +22,7 @@ pub struct PackFileIndex {
     pub file: String,
     #[serde(rename = "hash-format")]
     pub hash_format: String,
-    pub hash: String
+    pub hash: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -31,7 +31,7 @@ pub struct PackFileVersions {
     pub quilt: Option<String>,
     pub fabric: Option<String>,
     pub forge: Option<String>,
-    pub liteloader: Option<String>
+    pub liteloader: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -47,6 +47,5 @@ pub struct PackFileOptions {
     #[serde(rename = "no-internal-hashes")]
     pub no_internal_hashes: Option<bool>,
     #[serde(rename = "datapack-folder")]
-    pub datapack_folder: Option<String>
+    pub datapack_folder: Option<String>,
 }
-

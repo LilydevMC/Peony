@@ -1,11 +1,11 @@
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 pub mod project;
 pub mod version;
 
 pub struct ModrinthUrl {
     pub labrinth: String,
-    pub knossos: String
+    pub knossos: String,
 }
 
 impl ModrinthUrl {
@@ -13,22 +13,22 @@ impl ModrinthUrl {
         let knossos_url = match is_staging_conf {
             Some(is_staging) => match is_staging {
                 true => "https://staging.modrinth.com",
-                false => "https://modrinth.com"
+                false => "https://modrinth.com",
             },
-            None => "https://modrinth.com"
+            None => "https://modrinth.com",
         };
 
         let labrinth_url = match is_staging_conf {
             Some(is_staging) => match is_staging {
                 true => "https://staging-api.modrinth.com/v2",
-                false => "https://api.modrinth.com/v2"
+                false => "https://api.modrinth.com/v2",
             },
-            None => "https://api.modrinth.com/v2"
+            None => "https://api.modrinth.com/v2",
         };
 
         Self {
             knossos: knossos_url.to_owned(),
-            labrinth: labrinth_url.to_owned()
+            labrinth: labrinth_url.to_owned(),
         }
     }
 }
@@ -40,7 +40,7 @@ pub enum Loader {
     FABRIC,
     NEOFORGE,
     FORGE,
-    LITELOADER
+    LITELOADER,
 }
 
 impl Loader {
@@ -50,8 +50,9 @@ impl Loader {
             Self::FABRIC => "Fabric",
             Self::NEOFORGE => "NeoForge",
             Self::FORGE => "Forge",
-            Self::LITELOADER => "LiteLoader"
-        }.to_string()
+            Self::LITELOADER => "LiteLoader",
+        }
+        .to_string()
     }
 }
 
@@ -59,7 +60,7 @@ impl Loader {
 pub struct DonationObject {
     pub id: String,
     pub platform: String,
-    pub url: String
+    pub url: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -76,7 +77,7 @@ pub struct GalleryObject {
     pub title: Option<String>,
     pub description: Option<String>,
     pub created: String,
-    pub ordering: i32
+    pub ordering: i32,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -85,5 +86,5 @@ pub enum DependencyType {
     REQUIRED,
     OPTIONAL,
     INCOMPATIBLE,
-    EMBEDDED
+    EMBEDDED,
 }
