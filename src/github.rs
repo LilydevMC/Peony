@@ -62,7 +62,7 @@ pub async fn create_modpack_release(
     pack_file: &PackFile,
     output_file_info: &OutputFileInfo,
     version_info: &VersionInfo,
-    changelog: &String,
+    changelog: &str,
 ) -> Result<(), anyhow::Error> {
     println!("Creating GitHub release...");
 
@@ -74,7 +74,7 @@ pub async fn create_modpack_release(
     let new_release_req_body = CreateReleaseRequest {
         tag_name: pack_file.version.clone(),
         name: Some(version_info.version_name.clone()),
-        body: Some(changelog.clone()),
+        body: Some(changelog.to_owned()),
     };
 
     let new_release_response =
@@ -116,7 +116,7 @@ pub async fn create_mod_release(
     config: &ModConfig,
     mod_info: &ModInfo,
     mod_jars: &ModJars,
-    changelog: &String,
+    changelog: &str,
     version_name: &String,
 ) -> Result<(), anyhow::Error> {
     println!("Creating GitHub release...");
@@ -129,7 +129,7 @@ pub async fn create_mod_release(
     let new_release_req_body = CreateReleaseRequest {
         tag_name: mod_info.version.clone(),
         name: Some(version_name.into()),
-        body: Some(changelog.clone()),
+        body: Some(changelog.to_owned()),
     };
 
     let new_release_response =
@@ -207,45 +207,42 @@ pub async fn upload_mod_jars(
     }
 
     // Upload sources jar
-    match sources_jar_contents {
-        Some(file_contents) => {
-            println!(
-                "Uploading sources jar as GitHub Release asset `{}`...",
-                &mod_jars.sources_jar.clone().unwrap().file_name
-            );
+    if let Some(file_contents) = sources_jar_contents {
+        println!(
+            "Uploading sources jar as GitHub Release asset `{}`...",
+            &mod_jars.sources_jar.clone().unwrap().file_name
+        );
 
-            match reqwest::Client::new()
-                .post(format!(
-                    "https://uploads.github.com/repos/{}/{}/releases/{}/assets?name=\"{}\"",
-                    github_config.repo_owner,
-                    github_config.repo_name,
-                    release_id,
+        match reqwest::Client::new()
+            .post(format!(
+                "https://uploads.github.com/repos/{}/{}/releases/{}/assets?name=\"{}\"",
+                github_config.repo_owner,
+                github_config.repo_name,
+                release_id,
+                &mod_jars.sources_jar.clone().unwrap().file_name
+            ))
+            .header("User-Agent", env!("CARGO_PKG_NAME"))
+            .header("Accept", "application/vnd.github+json")
+            .header("Content-Type", "application/java-archive")
+            .bearer_auth(&token)
+            .body(file_contents)
+            .send()
+            .await
+        {
+            Ok(_) => {
+                println!(
+                    "Successfully uploaded GitHub Release asset `{}`!",
                     &mod_jars.sources_jar.clone().unwrap().file_name
+                )
+            }
+            Err(err) => {
+                return Err(anyhow!(
+                    "Failed to upload GitHub release asset `{}`: {}",
+                    &mod_jars.sources_jar.clone().unwrap().file_name,
+                    err
                 ))
-                .header("User-Agent", env!("CARGO_PKG_NAME"))
-                .header("Accept", "application/vnd.github+json")
-                .header("Content-Type", "application/java-archive")
-                .bearer_auth(&token)
-                .body(file_contents)
-                .send()
-                .await
-            {
-                Ok(_) => {
-                    println!(
-                        "Successfully uploaded GitHub Release asset `{}`!",
-                        &mod_jars.sources_jar.clone().unwrap().file_name
-                    )
-                }
-                Err(err) => {
-                    return Err(anyhow!(
-                        "Failed to upload GitHub release asset `{}`: {}",
-                        &mod_jars.sources_jar.clone().unwrap().file_name,
-                        err
-                    ))
-                }
             }
         }
-        None => (),
     }
 
     Ok(())

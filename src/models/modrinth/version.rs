@@ -31,25 +31,20 @@ pub struct VersionDependency {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
 pub enum VersionType {
-    #[serde(rename = "release")]
-    RELEASE,
-    #[serde(rename = "beta")]
-    BETA,
-    #[serde(rename = "alpha")]
-    ALPHA,
+    Release,
+    Beta,
+    Alpha,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
 pub enum VersionStatus {
-    #[serde(rename = "listed")]
-    LISTED,
-    #[serde(rename = "archived")]
-    ARCHIVED,
-    #[serde(rename = "draft")]
-    DRAFT,
-    #[serde(rename = "unlisted")]
-    UNLISTED,
+    Listed,
+    Archived,
+    Draft,
+    Unlisted,
 }
 
 impl From<ModrinthDependency> for VersionDependency {

@@ -36,21 +36,21 @@ impl ModrinthUrl {
 #[derive(Debug, Serialize, Deserialize, Copy, Clone)]
 #[serde(rename_all = "lowercase")]
 pub enum Loader {
-    QUILT,
-    FABRIC,
-    NEOFORGE,
-    FORGE,
-    LITELOADER,
+    Quilt,
+    Fabric,
+    Neoforge,
+    Forge,
+    Liteloader,
 }
 
 impl Loader {
     pub fn formatted(&self) -> String {
         match self {
-            Self::QUILT => "Quilt",
-            Self::FABRIC => "Fabric",
-            Self::NEOFORGE => "NeoForge",
-            Self::FORGE => "Forge",
-            Self::LITELOADER => "LiteLoader",
+            Self::Quilt => "Quilt",
+            Self::Fabric => "Fabric",
+            Self::Neoforge => "NeoForge",
+            Self::Forge => "Forge",
+            Self::Liteloader => "LiteLoader",
         }
         .to_string()
     }
@@ -83,8 +83,8 @@ pub struct GalleryObject {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "lowercase")]
 pub enum DependencyType {
-    REQUIRED,
-    OPTIONAL,
-    INCOMPATIBLE,
-    EMBEDDED,
+    Required,
+    Optional,
+    Incompatible,
+    Embedded,
 }

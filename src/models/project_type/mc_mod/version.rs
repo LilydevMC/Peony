@@ -20,14 +20,6 @@ pub struct ModFile {
 }
 
 impl ModVersionInfo {
-    pub fn loaders_formatted(&self) -> String {
-        let loaders: &Vec<String> = &self.loaders.iter().map(|l| l.formatted()).collect();
-
-        loaders.join("/")
-    }
-}
-
-impl ModVersionInfo {
     pub fn new(
         config: &ModConfig,
         mod_jars: &ModJars,

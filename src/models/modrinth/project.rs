@@ -4,23 +4,23 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum ProjectType {
-    MOD,
-    PLUGIN,
-    DATAPACK,
-    SHADER,
-    RESOURCEPACK,
-    MODPACK,
+    Mod,
+    Plugin,
+    Datapack,
+    Shader,
+    Resourcepack,
+    Modpack,
 }
 
 impl ProjectType {
     pub fn formatted(&self) -> String {
         match self {
-            Self::MOD => "Mod",
-            Self::PLUGIN => "Plugin",
-            Self::DATAPACK => "Data Pack",
-            Self::SHADER => "Shader",
-            Self::RESOURCEPACK => "Resource Pack",
-            Self::MODPACK => "Modpack",
+            Self::Mod => "Mod",
+            Self::Plugin => "Plugin",
+            Self::Datapack => "Data Pack",
+            Self::Shader => "Shader",
+            Self::Resourcepack => "Resource Pack",
+            Self::Modpack => "Modpack",
         }
         .to_string()
     }

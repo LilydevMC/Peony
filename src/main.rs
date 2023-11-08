@@ -57,10 +57,7 @@ enum Commands {
 
 #[tokio::main]
 async fn main() -> Result<(), anyhow::Error> {
-    match dotenvy::dotenv() {
-        Ok(_) => (),
-        Err(_) => (),
-    };
+    let _ = dotenvy::dotenv();
 
     let args = CliArgs::parse();
 
@@ -96,25 +93,19 @@ async fn main() -> Result<(), anyhow::Error> {
                 Err(err) => return Err(err),
             };
 
-            match version {
-                Some(ver) => {
-                    let mut new_file_contents = pack_file.clone();
-                    new_file_contents.version = ver;
-                    let file_contents_string = match toml::to_string(&new_file_contents) {
-                        Ok(file) => file,
-                        Err(err) => {
-                            return Err(anyhow!("Failed to parse new pack data to toml: {}", err))
-                        }
-                    };
-
-                    pack_file = new_file_contents;
-
-                    match write_pack_file(&tmp_info.dir_path, file_contents_string) {
-                        Ok(_) => (),
-                        Err(err) => return Err(err),
+            if let Some(ver) = version {
+                let mut new_file_contents = pack_file.clone();
+                new_file_contents.version = ver;
+                let file_contents_string = match toml::to_string(&new_file_contents) {
+                    Ok(file) => file,
+                    Err(err) => {
+                        return Err(anyhow!("Failed to parse new pack data to toml: {}", err))
                     }
-                }
-                None => (),
+                };
+
+                pack_file = new_file_contents;
+
+                write_pack_file(&tmp_info.dir_path, file_contents_string)?
             }
 
             match Command::new("packwiz")
@@ -220,13 +211,11 @@ async fn main() -> Result<(), anyhow::Error> {
                 Err(err) => return Err(anyhow!("Failed to find Java executable: {}", err)),
             }
 
-            let gradlew_path: &Path;
-
-            if env::consts::OS == "windows" {
-                gradlew_path = Path::new(".\\gradlew.bat");
+            let gradlew_path: &Path = if env::consts::OS == "windows" {
+                Path::new(".\\gradlew.bat")
             } else {
-                gradlew_path = Path::new("./gradlew");
-            }
+                Path::new("./gradlew")
+            };
 
             if !Path::new(gradlew_path).exists() {
                 return Err(anyhow!(
@@ -256,10 +245,7 @@ async fn main() -> Result<(), anyhow::Error> {
             };
 
             // remove previously-compiled jars, if any
-            match fs::remove_dir(&tmp_info.dir_path.join("build").join("libs")) {
-                Ok(_) => (),
-                Err(_) => (),
-            }
+            let _ = fs::remove_dir(&tmp_info.dir_path.join("build").join("libs"));
 
             let mut gradle_command = Command::new(gradlew_path);
 

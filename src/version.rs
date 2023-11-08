@@ -11,13 +11,13 @@ pub fn get_modpack_version_info(
     output_info: &OutputFileInfo,
 ) -> Result<VersionInfo, anyhow::Error> {
     let loader_opt = if pack_file.versions.quilt.is_some() {
-        Some(QUILT)
+        Some(Quilt)
     } else if pack_file.versions.fabric.is_some() {
-        Some(FABRIC)
+        Some(Fabric)
     } else if pack_file.versions.forge.is_some() {
-        Some(FORGE)
+        Some(Forge)
     } else if pack_file.versions.liteloader.is_some() {
-        Some(LITELOADER)
+        Some(Liteloader)
     } else {
         None
     };

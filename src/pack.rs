@@ -37,7 +37,7 @@ pub fn write_pack_file(dir_path: &PathBuf, file_contents: String) -> Result<(), 
 
 pub fn get_output_file(tmp_dir_info: &TempInfo) -> Result<OutputFileInfo, anyhow::Error> {
     // This should work, as there shouldn't be any more than one .mrpack file at a given time
-    let glob_pattern = match glob(
+    let mut glob_pattern = match glob(
         match Path::new(&tmp_dir_info.dir_path).join("*.mrpack").to_str() {
             Some(path) => path,
             None => return Err(anyhow!("Failed to parse modpack glob to string.")),
@@ -48,9 +48,8 @@ pub fn get_output_file(tmp_dir_info: &TempInfo) -> Result<OutputFileInfo, anyhow
     };
 
     let mut mrpack_path_res = None;
-    for entry in glob_pattern {
+    if let Some(entry) = glob_pattern.next() {
         mrpack_path_res = Some(entry);
-        break;
     }
     let file_path = match mrpack_path_res {
         Some(path) => match path {

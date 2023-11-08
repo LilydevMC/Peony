@@ -29,15 +29,15 @@ pub struct JarPart {
 
 #[derive(Debug, Copy, Clone)]
 pub enum FileType {
-    MOD,
-    SOURCES,
+    Mod,
+    Sources,
 }
 
 impl FileType {
     pub fn part_name(&self) -> String {
         match self {
-            Self::MOD => "mod_jar-y5fpv7cUQ6W!sL",
-            Self::SOURCES => "sources_jar-y5fpv7cUQ6W!sL",
+            Self::Mod => "mod_jar",
+            Self::Sources => "sources_jar",
         }
         .to_string()
     }
@@ -62,10 +62,10 @@ pub async fn create_modpack_release(
         changelog: Some(changelog.to_string()),
         dependencies: vec![],
         game_versions: vec![pack_file.versions.minecraft.clone()],
-        version_type: VersionType::RELEASE,
+        version_type: VersionType::Release,
         loaders: vec![version_info.loader],
         featured: false,
-        requested_status: VersionStatus::LISTED,
+        requested_status: VersionStatus::Listed,
         project_id: modrinth_config.project_id,
         file_parts: vec!["file".to_string()],
         primary_file: output_file_info.file_name.clone(),
@@ -124,10 +124,10 @@ pub async fn create_mod_release(
 
     println!("Uploading to Modrinth...");
 
-    let mut file_part_names = vec![FileType::MOD.part_name()];
+    let mut file_part_names = vec![FileType::Mod.part_name()];
 
     if mod_files.sources_file.is_some() {
-        file_part_names.push(FileType::SOURCES.part_name())
+        file_part_names.push(FileType::Sources.part_name())
     }
 
     let mut dependencies: Vec<VersionDependency> = vec![];
@@ -144,13 +144,13 @@ pub async fn create_mod_release(
         changelog: Some(changelog.to_string()),
         dependencies,
         game_versions: config.mc_versions.to_owned(),
-        version_type: VersionType::RELEASE,
+        version_type: VersionType::Release,
         loaders: config.loaders.to_owned(),
         featured: false,
-        requested_status: VersionStatus::LISTED,
+        requested_status: VersionStatus::Listed,
         project_id: modrinth_config.project_id,
         file_parts: file_part_names,
-        primary_file: FileType::MOD.part_name(),
+        primary_file: FileType::Mod.part_name(),
     };
 
     let form = match create_mod_form(mod_files, &form_data).await {
@@ -190,7 +190,7 @@ pub async fn create_mod_form(
         file_part: Part::bytes(mod_files.mod_file.contents.clone())
             .file_name(mod_files.mod_file.clone().name)
             .mime_str("application/java-archive")?,
-        file_type: FileType::MOD,
+        file_type: FileType::Mod,
     };
 
     let sources_part = match &mod_files.sources_file {
@@ -204,7 +204,7 @@ pub async fn create_mod_form(
             Some(JarPart {
                 file_name: file.name.clone(),
                 file_part: part,
-                file_type: FileType::SOURCES,
+                file_type: FileType::Sources,
             })
         }
         None => None,
