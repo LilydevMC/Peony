@@ -20,6 +20,7 @@ use crate::{
     util::*,
     version::*,
 };
+use crate::models::modrinth::version::VersionType;
 
 mod discord;
 mod github;
@@ -39,19 +40,23 @@ struct CliArgs {
 
 #[derive(Debug, Subcommand)]
 enum Commands {
-    #[command(about = "Export and upload Packwiz modpack")]
+    #[command(about = "Export and upload a Packwiz modpack")]
     Modpack {
         #[clap(long, short, help = "Whether or not to send Discord webhook")]
         discord: bool,
         #[clap(long, short, help = "Custom version number")]
         version: Option<String>,
+        #[clap(long, short = 'V', help = "Version type (used for Modrinth & GitHub releases)")]
+        version_type: Option<VersionType>
     },
-    #[command(about = "Build and upload Fabric/Quilt mc_mod")]
+    #[command(about = "Build and upload a Fabric/Quilt mod")]
     Mod {
         #[clap(long, short, help = "Whether or not to send Discord webhook")]
         discord: bool,
         #[clap(long, short, help = "Args to pass to Gradle", default_value = "build")]
         gradle_args: String,
+        #[clap(long, short = 'V', help = "Version type (used for Modrinth & GitHub releases)")]
+        version_type: Option<VersionType>
     },
 }
 
@@ -62,7 +67,7 @@ async fn main() -> Result<(), anyhow::Error> {
     let args = CliArgs::parse();
 
     match args.commands {
-        Commands::Modpack { discord, version } => {
+        Commands::Modpack { discord, version, version_type } => {
             match which::which("packwiz") {
                 Ok(_) => (),
                 Err(err) => return Err(anyhow!("Failed to find packwiz executable: {}", err)),
@@ -144,6 +149,10 @@ async fn main() -> Result<(), anyhow::Error> {
                 &output_file_info,
                 &version_info,
                 &changelog_markdown,
+                match version_type.clone() {
+                    Some(ver_type) => ver_type,
+                    None => VersionType::Release
+                }
             )
             .await
             {
@@ -168,6 +177,10 @@ async fn main() -> Result<(), anyhow::Error> {
                 &changelog_markdown,
                 modrinth_token.clone(),
                 &modrinth_url,
+                match version_type {
+                    Some(ver_type) => ver_type,
+                    None => VersionType::Release
+                }
             )
             .await
             {
@@ -205,6 +218,7 @@ async fn main() -> Result<(), anyhow::Error> {
         Commands::Mod {
             discord,
             gradle_args,
+            version_type
         } => {
             match which::which("java") {
                 Ok(_) => (),
@@ -405,6 +419,10 @@ async fn main() -> Result<(), anyhow::Error> {
                 &mod_jars,
                 &changelog_markdown,
                 &version_info.name,
+                match version_type.clone() {
+                    Some(ver_type) => ver_type,
+                    None => VersionType::Release
+                }
             )
             .await
             {
@@ -422,6 +440,10 @@ async fn main() -> Result<(), anyhow::Error> {
                 &changelog_markdown,
                 &modrinth_url,
                 &version_info.name,
+                match version_type {
+                    Some(ver_type) => ver_type,
+                    None => VersionType::Release
+                }
             )
             .await
             {

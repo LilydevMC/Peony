@@ -5,6 +5,7 @@ pub struct CreateReleaseRequest {
     pub tag_name: String,
     pub name: Option<String>,
     pub body: Option<String>,
+    pub prerelease: bool
 }
 
 #[derive(Debug, Serialize, Deserialize)]

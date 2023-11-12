@@ -1,8 +1,10 @@
+use clap::ValueEnum;
 use crate::models::{
     modrinth::{DependencyType, Loader},
     project_type::mc_mod::config::modrinth::ModrinthDependency,
 };
 use serde::{Deserialize, Serialize};
+
 
 // Based on the `Create Version` schema here:
 // https://docs.modrinth.com/api-spec#tag/versions/operation/createVersion
@@ -30,7 +32,7 @@ pub struct VersionDependency {
     pub dependency_type: DependencyType,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, ValueEnum)]
 #[serde(rename_all = "lowercase")]
 pub enum VersionType {
     Release,

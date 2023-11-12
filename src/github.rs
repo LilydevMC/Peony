@@ -11,6 +11,7 @@ use crate::models::{
     version::VersionInfo,
     GithubConfig,
 };
+use crate::models::modrinth::version::VersionType;
 
 pub async fn generate_changelog(config: &GithubConfig) -> Result<String, anyhow::Error> {
     println!("Generating changelog...");
@@ -63,6 +64,7 @@ pub async fn create_modpack_release(
     output_file_info: &OutputFileInfo,
     version_info: &VersionInfo,
     changelog: &str,
+    version_type: VersionType
 ) -> Result<(), anyhow::Error> {
     println!("Creating GitHub release...");
 
@@ -75,6 +77,10 @@ pub async fn create_modpack_release(
         tag_name: pack_file.version.clone(),
         name: Some(version_info.version_name.clone()),
         body: Some(changelog.to_owned()),
+        prerelease: match version_type {
+            VersionType::Release => false,
+            _ => true
+        }
     };
 
     let new_release_response =
@@ -118,6 +124,7 @@ pub async fn create_mod_release(
     mod_jars: &ModJars,
     changelog: &str,
     version_name: &String,
+    version_type: VersionType
 ) -> Result<(), anyhow::Error> {
     println!("Creating GitHub release...");
 
@@ -130,6 +137,10 @@ pub async fn create_mod_release(
         tag_name: mod_info.version.clone(),
         name: Some(version_name.into()),
         body: Some(changelog.to_owned()),
+        prerelease: match version_type {
+            VersionType::Release => false,
+            _ => true
+        }
     };
 
     let new_release_response =

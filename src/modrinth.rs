@@ -51,6 +51,7 @@ pub async fn create_modpack_release(
     changelog: &String,
     modrinth_token: String,
     modrinth_url: &ModrinthUrl,
+    version_type: VersionType
 ) -> Result<(), anyhow::Error> {
     let modrinth_config = config.modrinth.clone();
 
@@ -62,7 +63,7 @@ pub async fn create_modpack_release(
         changelog: Some(changelog.to_string()),
         dependencies: vec![],
         game_versions: vec![pack_file.versions.minecraft.clone()],
-        version_type: VersionType::Release,
+        version_type,
         loaders: vec![version_info.loader],
         featured: false,
         requested_status: VersionStatus::Listed,
@@ -110,6 +111,7 @@ pub async fn create_mod_release(
     changelog: &String,
     modrinth_url: &ModrinthUrl,
     version_name: &String,
+    version_type: VersionType
 ) -> Result<(), anyhow::Error> {
     let modrinth_config = config.modrinth.clone();
     let modrinth_token = match env::var("MODRINTH_TOKEN") {
@@ -144,7 +146,7 @@ pub async fn create_mod_release(
         changelog: Some(changelog.to_string()),
         dependencies,
         game_versions: config.mc_versions.to_owned(),
-        version_type: VersionType::Release,
+        version_type,
         loaders: config.loaders.to_owned(),
         featured: false,
         requested_status: VersionStatus::Listed,
